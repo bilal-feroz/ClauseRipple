@@ -286,7 +286,7 @@ class OllamaPlanner:
                         "tools": tool_defs,
                         "stream": False,
                         "think": False,
-                        "options": {"num_ctx": 16384, "temperature": 0},
+                        "options": {"num_ctx": get_settings().ollama_num_ctx, "temperature": 0},
                     },
                 )
                 res.raise_for_status()

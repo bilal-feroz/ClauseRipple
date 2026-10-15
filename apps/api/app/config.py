@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     openai_api_key: SecretStr | None = None
     llm_timeout_s: float = 60.0
     llm_max_steps: int = 24
+    # Context window requested from Ollama's native API (its default 4k is too small for 10 tool schemas).
+    ollama_num_ctx: int = 8192
 
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
     demo_mode: bool = True
