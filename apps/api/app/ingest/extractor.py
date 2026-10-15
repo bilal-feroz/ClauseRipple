@@ -261,6 +261,8 @@ class Extractor:
                     segment=r.cells.get("Segment"),
                     regulated=r.cells.get("Regulated", "").lower() == "yes",
                     headquarters=r.cells.get("Headquarters"),
+                    acv_usd=int(re.sub(r"[^0-9]", "", r.cells.get("Annual contract value (USD)", "")) or 0)
+                    or None,
                 )
                 self.gaz.add(name, "Customer", node_id)
                 manager = r.cells.get("Account manager")

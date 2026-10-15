@@ -22,6 +22,7 @@ MATCH (c:Customer)
 OPTIONAL MATCH (c)-[:BOUND_BY]->(:Contract)-[:HAS_CLAUSE]->(cl:Clause)-[:IMPOSES]->(o:Obligation)-[:ALLOWS]->(r:DataRegion)
 WHERE o.type = 'DATA_RESIDENCY'
 RETURN c.id AS customer_id, c.name AS customer_name, c.segment AS segment, c.regulated AS regulated,
+       c.acv_usd AS acv_usd,
        collect(DISTINCT r.code) AS allowed_regions,
        collect(DISTINCT o.id) AS obligation_ids,
        collect(DISTINCT cl.ref) AS clause_refs

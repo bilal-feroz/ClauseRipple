@@ -8,11 +8,10 @@ RETURN coalesce(max(n.seq), 0) + 1 AS next
 // @query create_impact_case
 // Purpose : the agent's action — persist an ImpactCase and link it to everything that justifies it.
 // Params  : $props, $customer_id, $vendor_id, $product_id, $system_id, $obligation_id, $change_id
-CREATE (ic:ImpactCase)
-SET ic = $props
-WITH ic
 MATCH (c:Customer {id: $customer_id}), (v:Vendor {id: $vendor_id}), (p:Product {id: $product_id}),
       (s:System {id: $system_id}), (o:Obligation {id: $obligation_id})
+CREATE (ic:ImpactCase)
+SET ic = $props
 MERGE (ic)-[:AFFECTS]->(c)
 MERGE (ic)-[:CAUSED_BY]->(v)
 MERGE (ic)-[:INVOLVES]->(p)
@@ -118,11 +117,10 @@ RETURN count(a) AS approved
 // Purpose : close the memory loop — an approved remediation becomes a new Decision node that
 //           future agent runs recall (APPLIES_TO customer, INVOLVES vendor, RESOLVES case).
 // Params  : $props, $case_id, $customer_id, $vendor_id, $person_id, $team_id
-CREATE (d:Decision)
-SET d = $props
-WITH d
 MATCH (ic:ImpactCase {id: $case_id}), (c:Customer {id: $customer_id}), (v:Vendor {id: $vendor_id}),
       (p:Person {id: $person_id}), (t:Team {id: $team_id})
+CREATE (d:Decision)
+SET d = $props
 MERGE (d)-[:RESOLVES]->(ic)
 MERGE (d)-[:APPLIES_TO]->(c)
 MERGE (d)-[:INVOLVES]->(v)

@@ -7,7 +7,7 @@ from typing import Any
 from app.graph.client import GraphClient, get_graph
 from app.graph.cypher import cypher
 from app.graph.ontology import label_of
-from app.services.rules import ResidencyVerdict, classify_residency
+from app.services.rules import ResidencyVerdict, classify_residency, triage_order
 
 
 def vendor_dependents(vendor_id: str, g: GraphClient | None = None) -> list[dict[str, Any]]:
@@ -105,8 +105,10 @@ def evaluate_residency(
                 clause_refs=[r for r in c.get("clause_refs", []) if r],
                 added_regions=added_regions,
                 routes=routes,
+                acv_usd=c.get("acv_usd"),
             )
         )
+    verdicts = triage_order(verdicts)
 
     impacted = [v for v in verdicts if v.affected]
     return {
@@ -122,6 +124,7 @@ def evaluate_residency(
             "customers_impacted": len(impacted),
             "products_involved": sorted({r["product"] for v in impacted for r in v.routes}),
             "systems_involved": sorted({r["system"] for v in impacted for r in v.routes}),
+            "acv_at_risk_usd": sum(v.acv_usd or 0 for v in impacted),
         },
     }
 

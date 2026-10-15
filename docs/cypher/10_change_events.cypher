@@ -7,10 +7,9 @@ RETURN coalesce(max(n.seq), 0) + 1 AS next
 // @query create_change_event
 // Purpose : persist a detected source change as a first-class graph event.
 // Params  : $props, $doc_node
+MATCH (d:Document {id: $doc_node})
 CREATE (ce:ChangeEvent)
 SET ce = $props
-WITH ce
-MATCH (d:Document {id: $doc_node})
 MERGE (ce)-[:CHANGED]->(d)
 RETURN ce.id AS id
 

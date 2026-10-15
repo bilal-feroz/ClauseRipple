@@ -6,7 +6,7 @@ MATCH (n)
 WHERE labels(n)[0] IN $labels
 RETURN n.id AS id, labels(n)[0] AS label, n.name AS name,
        n.ref AS ref, n.code AS code, n.type AS type, n.status AS status, n.severity AS severity,
-       n.role AS role, n.segment AS segment, n.regulated AS regulated, n.tier AS tier,
+       n.role AS role, n.segment AS segment, n.regulated AS regulated, n.tier AS tier, n.acv_usd AS acv_usd,
        n.src AS src, n.created_at AS created_at
 
 // @query entity_by_id

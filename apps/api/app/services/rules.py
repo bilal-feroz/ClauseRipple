@@ -27,6 +27,7 @@ class ResidencyVerdict:
     introduced_by_change: list[str]
     reason: str
     regulated: bool = False
+    acv_usd: int | None = None
     routes: list[dict] = field(default_factory=list)
 
     def as_dict(self) -> dict:
@@ -35,6 +36,17 @@ class ResidencyVerdict:
 
 def violating_regions(actual: set[str] | list[str], allowed: set[str] | list[str]) -> list[str]:
     return sorted(set(actual) - set(allowed))
+
+
+SEVERITY_RANK = {"CRITICAL": 0, "HIGH": 1, "NONE": 2}
+
+
+def triage_order(verdicts: list[ResidencyVerdict]) -> list[ResidencyVerdict]:
+    """Impacted first, then severity, then annual contract value (largest exposure first)."""
+    return sorted(
+        verdicts,
+        key=lambda v: (not v.affected, SEVERITY_RANK[v.severity], -(v.acv_usd or 0), v.customer_name),
+    )
 
 
 def severity_for(affected: bool, regulated: bool) -> Severity:
@@ -55,6 +67,7 @@ def classify_residency(
     clause_refs: list[str] | None = None,
     added_regions: list[str] | None = None,
     routes: list[dict] | None = None,
+    acv_usd: int | None = None,
 ) -> ResidencyVerdict:
     allowed = sorted(set(allowed_regions))
     actual = sorted(set(vendor_regions))
@@ -66,6 +79,7 @@ def classify_residency(
         "vendor_regions": actual if dependency_path_exists else [],
         "allowed_regions": allowed,
         "regulated": regulated,
+        "acv_usd": acv_usd,
         "routes": routes or [],
     }
     if not dependency_path_exists:
