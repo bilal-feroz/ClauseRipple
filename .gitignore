@@ -35,3 +35,6 @@ apps/web/blob-report/
 Thumbs.db
 .idea/
 *.log
+
+# Playwright local artifacts
+apps/web/e2e/.auth/

@@ -71,7 +71,7 @@ OPTIONAL MATCH (ic)-[:ASSIGNED_TO]->(p:Person)
 OPTIONAL MATCH (ic)-[:ASSIGNED_TO]->(t:Team)
 RETURN properties(ic) AS case, c.id AS customer_id, c.name AS customer, v.name AS vendor,
        p.name AS assignee, t.name AS team
-ORDER BY ic.seq DESC
+ORDER BY ic.seq
 
 // @query case_detail
 // Purpose : one impact case with everything it links to (case view, second-session memory).

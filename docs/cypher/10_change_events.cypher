@@ -52,5 +52,5 @@ RETURN properties(ce) AS change,
 // Purpose : change-event history (newest first).
 MATCH (ce:ChangeEvent)
 OPTIONAL MATCH (run:AgentRun)-[:TRIGGERED_BY]->(ce)
-RETURN properties(ce) AS change, collect(run.id) AS runs
-ORDER BY ce.seq DESC
+RETURN properties(ce) AS change, collect(run.id) AS runs, ce.seq AS seq
+ORDER BY seq DESC

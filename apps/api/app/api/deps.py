@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 from collections.abc import Callable
 from typing import Any, TypeVar
 
 from fastapi import HTTPException
+from redis.exceptions import ResponseError
 
 from app.graph.client import GraphUnavailableError
 
@@ -26,3 +28,6 @@ def guarded(fn: Callable[..., T], *args: Any, **kwargs: Any) -> T:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ResponseError as exc:  # FalkorDB rejected a query: log it, never leak internals
+        logging.getLogger("clauseripple").exception("Graph query failed")
+        raise HTTPException(status_code=500, detail="Graph query failed") from exc

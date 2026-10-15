@@ -58,8 +58,8 @@ OPTIONAL MATCH (run)-[:CREATED]->(ic:ImpactCase)
 OPTIONAL MATCH (run)-[:REFERENCED]->(d:Decision)
 OPTIONAL MATCH (run)-[:TRIGGERED_BY]->(ce:ChangeEvent)
 RETURN properties(run) AS run, collect(DISTINCT ic.ref) AS created_cases,
-       collect(DISTINCT d.ref) AS referenced_decisions, ce.ref AS change_ref
-ORDER BY run.seq DESC
+       collect(DISTINCT d.ref) AS referenced_decisions, ce.ref AS change_ref, run.seq AS seq
+ORDER BY seq DESC
 
 // @query runs_touching_entity
 // Purpose : "which agent runs touched Falcon Bank?" — graph-native agent observability.

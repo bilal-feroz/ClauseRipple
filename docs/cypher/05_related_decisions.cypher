@@ -39,5 +39,5 @@ OPTIONAL MATCH (d)-[:RESOLVES]->(ic:ImpactCase)
 RETURN d.id AS decision_id, d.ref AS ref, d.name AS title, d.date AS date, d.status AS status,
        d.decision AS decision, d.topics AS topics, d.src AS src, d.origin AS origin,
        collect(DISTINCT c.name) AS customers, collect(DISTINCT v.name) AS vendors,
-       p.name AS owner, t.name AS approved_by, collect(DISTINCT ic.ref) AS resolves_cases
-ORDER BY d.seq DESC
+       p.name AS owner, t.name AS approved_by, collect(DISTINCT ic.ref) AS resolves_cases, d.seq AS seq
+ORDER BY seq DESC
