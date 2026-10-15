@@ -1,0 +1,28 @@
+# Critical facts the AtlasAI demo world must contain after ingesting v1.
+# POST /api/demo/reset validates these against the LIVE FalkorDB graph and reports failures.
+# Nothing here is ever written to the graph: if extraction misses a fact, validation fails.
+baseline:
+  edges:
+    - [customer:falcon-bank, USES, product:docsummarizer]
+    - [product:docsummarizer, POWERED_BY, system:document-processing-api]
+    - [system:document-processing-api, DEPENDS_ON, vendor:modelcloud]
+    - [customer:acme-insurance, USES, product:claimscopilot]
+    - [product:claimscopilot, POWERED_BY, system:claims-pipeline]
+    - [system:claims-pipeline, DEPENDS_ON, vendor:modelcloud]
+    - [customer:nova-retail, USES, product:docsummarizer]
+    - [customer:gulfgov, USES, product:localsearch]
+    - [product:localsearch, POWERED_BY, system:local-inference-service]
+    - [system:document-processing-api, OWNED_BY, team:platform-engineering]
+    - [person:sarah-malik, LEADS, team:platform-engineering]
+    - [system:claims-pipeline, OWNED_BY, team:claims-engineering]
+    - [decision:cr-087, APPLIES_TO, customer:falcon-bank]
+    - [decision:cr-087, INVOLVES, vendor:modelcloud]
+  allowed_regions:
+    customer:falcon-bank: [EU, UAE]
+    customer:acme-insurance: [EU, UAE]
+    customer:nova-retail: [EU, UAE, US]
+    customer:gulfgov: [UAE]
+  vendor_regions:
+    vendor:modelcloud: [EU, UAE]
+  no_dependency_path:
+    - [customer:gulfgov, vendor:modelcloud]
