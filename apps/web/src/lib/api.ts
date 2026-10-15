@@ -1,5 +1,6 @@
 import type {
   AgentRunSummary,
+  AskAnswer,
   CaseDetail,
   ChangeResult,
   Decision,
@@ -81,5 +82,7 @@ export const api = {
   runs: () => request<AgentRunSummary[]>("/api/agent/runs"),
   document: (docId: string) => request<SourceDocument>(`/api/documents/${enc(docId)}`),
   documents: () => request<SourceDocument[]>("/api/documents"),
+  ask: (question: string) =>
+    request<AskAnswer>("/api/ask", { method: "POST", body: JSON.stringify({ question }) }),
   runEventsUrl: (runId: string) => `${API_URL}/api/agent/runs/${enc(runId)}/events`,
 };

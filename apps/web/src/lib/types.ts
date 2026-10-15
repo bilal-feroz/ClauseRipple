@@ -366,3 +366,18 @@ export type ResetResult = {
   validation: { ok: boolean; passed: number; total: number; checks: { check: string; ok: boolean; detail: string }[] };
   duration_ms: number;
 };
+
+export type AskAnswer = {
+  question: string;
+  intent: string;
+  answer: string;
+  mode: string;
+  path: string[];
+  sources: { type?: string; src?: string | null; line?: number | null; quote: string }[];
+  passages: { doc_id: string; section: string; line: number; text: string; score: number }[];
+  retrieval: string;
+  entities: Record<string, string[]>;
+  cypher: string[];
+  graph_reads: number;
+  db_time_ms: number;
+};

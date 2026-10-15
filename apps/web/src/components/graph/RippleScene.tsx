@@ -528,14 +528,13 @@ export default function RippleScene(props: RippleSceneProps) {
     return set;
   }, [selectedId, edges]);
 
-  // Label anchors: just above each node; floor captions at the front-left corner of each floor.
+  // Label anchors: just above each node.
   const anchors = useMemo(() => {
     const m = new Map<string, Vec3>();
     for (const n of nodes) {
       const p = positions.get(n.id);
       if (p) m.set(n.id, [p[0], p[1] + (LABEL_STYLE[n.label]?.size ?? 0.5) * SIZE_SCALE + 0.45, p[2]]);
     }
-    for (const f of FLOORS) m.set(f.key, [-6.5, f.y - 1.1, 9.6]);
     return m;
   }, [nodes, positions]);
 
@@ -579,19 +578,6 @@ export default function RippleScene(props: RippleSceneProps) {
         />
       </Canvas>
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
-        {FLOORS.map((f) => (
-          <div
-            key={f.key}
-            ref={(el) => {
-              if (el) labelRefs.current.set(f.key, el);
-              else labelRefs.current.delete(f.key);
-            }}
-            className="absolute left-0 top-0 whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500/80"
-            style={{ visibility: "hidden" }}
-          >
-            {f.label}
-          </div>
-        ))}
         {labels.map((l) => (
           <div
             key={l.id}

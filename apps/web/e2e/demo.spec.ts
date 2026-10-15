@@ -82,6 +82,14 @@ test("ModelCloud DPA change → agent → impact cases → evidence", async ({ p
   await page.waitForTimeout(2500);
   await shot(page, "08-after-reload-memory");
 
+  // Ask ClauseRipple: answered from FalkorDB with sources.
+  await page.getByRole("searchbox", { name: /Ask ClauseRipple/ }).or(page.getByLabel(/Ask ClauseRipple/)).first().fill("Who should handle CR-104?");
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog", { name: "Answer from the company graph" });
+  await expect(dialog).toContainText("Sarah Malik");
+  await expect(dialog).toContainText("case_detail");
+  await shot(page, "09-ask");
+
   const relevant = consoleErrors.filter((e) => !e.includes("Download the React DevTools"));
   console.log(`console errors: ${relevant.length}`);
   for (const e of relevant.slice(0, 5)) console.log("  ", e.slice(0, 200));

@@ -3,6 +3,7 @@
 import { Loader2, RotateCcw } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Badge, Button, Dot } from "@/components/ui";
+import { AskBar } from "./AskBar";
 import type { DemoState, Health } from "@/lib/types";
 
 export function TopBar({
@@ -31,7 +32,7 @@ export function TopBar({
     </div>
   );
   return (
-    <header className="flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-line bg-ink-900/90 px-4 py-2 backdrop-blur">
+    <header className="relative z-30 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-line bg-ink-900/90 px-4 py-2 backdrop-blur">
       <div className="flex items-center gap-2.5">
         <Logo />
         <div className="leading-tight">
@@ -54,13 +55,11 @@ export function TopBar({
         </Badge>
         <Badge tone={connected ? "signal" : "neutral"} className="normal-case tracking-normal">
           <Dot tone={connected ? "signal" : "neutral"} />
-          Agent {connected ? "ready" : "paused"} ·{" "}
-          {llm ? `LLM planner ${planner.slice(4)}` : planner ? "deterministic playbook planner" : "…"}
-        </Badge>
-        <Badge tone="memory" className="normal-case tracking-normal">
-          Tools via MCP
+          Agent {connected ? "ready" : "paused"} · {llm ? planner.slice(4) : planner ? "playbook" : "…"} · MCP
         </Badge>
       </div>
+
+      <AskBar />
 
       <div className="ml-auto flex items-center gap-4">
         {metric("documents", stats?.documents)}

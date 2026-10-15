@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Path, Query
+from pydantic import BaseModel, Field
 
 from app.api.deps import guarded
 from app.graph.client import get_graph
@@ -53,3 +54,21 @@ def document(doc_id: str = Path(pattern=r"^[a-z0-9_]{1,64}$")) -> dict[str, Any]
     if not rows:
         raise HTTPException(404, "Document not found")
     return rows[0]
+
+
+class AskRequest(BaseModel):
+    question: str = Field(min_length=3, max_length=400)
+
+
+@router.post("/ask")
+def ask(req: AskRequest) -> dict[str, Any]:
+    """Ask ClauseRipple: entity linking + graph tools; answers carry paths, quotes and the Cypher used."""
+    from app.services import ask as ask_service
+
+    return guarded(ask_service.answer, req.question)
+
+
+@router.get("/graph/algorithms/chokepoints")
+def dependency_chokepoints() -> list[dict[str, Any]]:
+    """FalkorDB algo.betweenness over Customer→Product→System→Vendor: which nodes most paths run through."""
+    return guarded(get_graph().read, cypher()["dependency_chokepoints"], name="dependency_chokepoints")
