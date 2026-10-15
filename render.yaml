@@ -1,0 +1,23 @@
+# Render Blueprint (free plan): FalkorDB + ClauseRipple API in one container.
+# The web app deploys separately on Vercel (Hobby). See docs/deployment.md.
+services:
+  - type: web
+    name: clauseripple-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./deploy/render/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: CORS_ORIGINS
+        sync: false # set to your Vercel URL, e.g. https://clauseripple.vercel.app
+      - key: MCP_ALLOWED_HOSTS
+        sync: false # e.g. clauseripple-api.onrender.com
+      - key: AGENT_EVENT_PACING_MS
+        value: "450"
+      - key: LLM_PROVIDER
+        sync: false # optional; empty = deterministic playbook planner
+      - key: LLM_MODEL
+        sync: false
+      - key: LLM_API_KEY
+        sync: false

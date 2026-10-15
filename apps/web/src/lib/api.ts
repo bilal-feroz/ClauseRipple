@@ -73,6 +73,11 @@ export const api = {
       `/api/cases/${enc(caseId)}/approve`,
       { method: "POST" },
     ),
+  requestCase: (customerId: string, vendorId = "vendor:modelcloud") =>
+    request<{ created: boolean; refused: boolean; message?: string; via: string }>("/api/cases", {
+      method: "POST",
+      body: JSON.stringify({ customer_id: customerId, vendor_id: vendorId }),
+    }),
   reviewCase: (caseId: string) => request<{ id: string; status: string }>(`/api/cases/${enc(caseId)}/review`, { method: "POST" }),
   decisions: () => request<Decision[]>("/api/memory/decisions"),
   changes: () =>

@@ -53,6 +53,12 @@ def test_endpoints_after_agent_run(client: TestClient):
         r = client.get(path)
         assert r.status_code == 200, (path, r.status_code, r.text[:200])
 
+    # Guardrail through MCP: a case for a customer the graph clears is refused, with the reason.
+    probe = client.post("/api/cases", json={"customer_id": "customer:nova-retail"}).json()
+    assert probe["refused"] and "Nova Retail is ALLOWED" in probe["message"] and probe["via"] == "mcp"
+    probe = client.post("/api/cases", json={"customer_id": "customer:gulfgov"}).json()
+    assert probe["refused"] and "NO_DEPENDENCY" in probe["message"]
+
     cases = client.get("/api/cases").json()
     falcon = next(c for c in cases if c["customer"] == "Falcon Bank")
     assert client.get(f"/api/cases/{falcon['id']}").json()["related_decisions"][0]["ref"] == "CR-087"

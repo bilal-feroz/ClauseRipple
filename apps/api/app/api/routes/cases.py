@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Path, Query
+from pydantic import BaseModel, Field
 
 from app.api.deps import guarded
 from app.graph.client import get_graph
@@ -26,6 +27,37 @@ def case(case_id: str = Path(pattern=CASE_ID)) -> dict[str, Any]:
     if detail is None:
         raise HTTPException(404, "Impact case not found")
     return detail
+
+
+class CaseRequest(BaseModel):
+    customer_id: str = Field(pattern=r"^customer:[a-z0-9.\-]{1,96}$")
+    vendor_id: str = Field(default="vendor:modelcloud", pattern=r"^vendor:[a-z0-9.\-]{1,96}$")
+
+
+@router.post("/cases")
+async def request_case(req: CaseRequest) -> dict[str, Any]:
+    """Ask the agent's create_impact_case tool (over MCP) to open a case. The tool re-checks the
+    residency rule against the live graph and refuses when there is no violation."""
+    from mcp import Client
+
+    from app.mcp_server import mcp_server
+    from app.services import demo
+
+    change_id = guarded(demo.demo_state).get("latest_change_id")
+    if not change_id:
+        raise HTTPException(409, "No change event yet — apply the DPA change first")
+    async with Client(mcp_server) as client:
+        res = await client.call_tool(
+            "create_impact_case",
+            {"customer_id": req.customer_id, "vendor_id": req.vendor_id, "change_id": change_id},
+        )
+    if res.is_error:
+        text = " ".join(getattr(c, "text", "") for c in res.content).replace(
+            "Error executing tool create_impact_case: ", ""
+        )
+        return {"created": False, "refused": "Refused" in text, "message": text, "via": "mcp"}
+    data = (res.structured_content or {}).get("data", {})
+    return {"created": bool(data.get("created")), "refused": False, "case": data, "via": "mcp"}
 
 
 @router.post("/cases/{case_id}/approve")

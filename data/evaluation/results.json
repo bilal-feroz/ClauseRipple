@@ -1,0 +1,703 @@
+{
+  "generated_at": "2026-10-15T18:06:13+00:00",
+  "falkordb": "4.22.1",
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  "llm_for_vector_rag": null,
+  "summary": {
+    "questions": 12,
+    "graph_exact_answer_rate": 1.0,
+    "graph_mean_evidence_recall": 0.99,
+    "vector_k3_mean_evidence_recall": 0.308,
+    "vector_k5_mean_evidence_recall": 0.371,
+    "vector_k8_mean_evidence_recall": 0.62,
+    "vector_k3_fully_supported": 1,
+    "vector_k5_fully_supported": 2,
+    "vector_k8_fully_supported": 4,
+    "graph_fully_supported": 11,
+    "impacted_customers_question": {
+      "graph": {
+        "answer": [
+          "Falcon Bank",
+          "Acme Insurance"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "exact": 1.0,
+        "evidence_recall": 0.875
+      },
+      "vector_k5_evidence_recall": 0.25,
+      "vector_k8_evidence_recall": 0.375
+    },
+    "latency": {
+      "blast_radius_falkordb_median_ms": 0.996,
+      "blast_radius_wall_median_ms": 4.67,
+      "evaluate_residency_wall_median_ms": 19.08,
+      "incremental_update_median_ms": 202.0,
+      "agent_run": {
+        "tool_count": 14,
+        "graph_reads": 63,
+        "graph_writes": 13,
+        "db_time_ms": 102.48,
+        "tool_time_ms": 584.7,
+        "duration_ms": 740.3,
+        "cases_created": [
+          "CR-104",
+          "CR-105"
+        ]
+      }
+    }
+  },
+  "rows": [
+    {
+      "id": "q01_impacted_customers",
+      "question": "Which customers are affected by ModelCloud adding US processing?",
+      "expected": [
+        "Falcon Bank",
+        "Acme Insurance"
+      ],
+      "graph": {
+        "answer": [
+          "Falcon Bank",
+          "Acme Insurance"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "exact": 1.0,
+        "evidence_recall": 0.875,
+        "evidence_docs": [
+          "acme_insurance_msa",
+          "claims_pipeline_architecture",
+          "document_processing_architecture",
+          "falcon_bank_msa",
+          "gulfgov_msa",
+          "modelcloud_dpa",
+          "nova_retail_msa"
+        ],
+        "latency_ms": 99.6
+      },
+      "vector": {
+        "k3": {
+          "evidence_recall": 0.25,
+          "retrieved_docs": [
+            "document_processing_architecture",
+            "modelcloud_dpa",
+            "prior_decision_cr087"
+          ]
+        },
+        "k5": {
+          "evidence_recall": 0.25,
+          "retrieved_docs": [
+            "document_processing_architecture",
+            "modelcloud_dpa",
+            "prior_decision_cr087",
+            "service_catalog"
+          ]
+        },
+        "k8": {
+          "evidence_recall": 0.375,
+          "retrieved_docs": [
+            "document_processing_architecture",
+            "local_search_architecture",
+            "modelcloud_dpa",
+            "platform_ticket_481",
+            "prior_decision_cr087",
+            "service_catalog"
+          ]
+        }
+      }
+    },
+    {
+      "id": "q02_why_falcon",
+      "question": "Why is Falcon Bank affected?",
+      "expected": [
+        "Falcon Bank"
+      ],
+      "graph": {
+        "answer": [
+          "Falcon Bank"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "exact": 1.0,
+        "evidence_recall": 1.0,
+        "evidence_docs": [
+          "acme_insurance_msa",
+          "claims_pipeline_architecture",
+          "document_processing_architecture",
+          "falcon_bank_msa",
+          "modelcloud_dpa",
+          "nova_retail_msa"
+        ],
+        "latency_ms": 38.09
+      },
+      "vector": {
+        "k3": {
+          "evidence_recall": 0.0,
+          "retrieved_docs": [
+            "customer_register",
+            "platform_ticket_481",
+            "prior_decision_cr087"
+          ]
+        },
+        "k5": {
+          "evidence_recall": 0.0,
+          "retrieved_docs": [
+            "customer_register",
+            "platform_ticket_481",
+            "prior_decision_cr087"
+          ]
+        },
+        "k8": {
+          "evidence_recall": 0.333,
+          "retrieved_docs": [
+            "customer_register",
+            "falcon_bank_msa",
+            "platform_ticket_481",
+            "prior_decision_cr087",
+            "prior_decision_cr095"
+          ]
+        }
+      }
+    },
+    {
+      "id": "q03_why_not_nova",
+      "question": "Why is Nova Retail not affected?",
+      "expected": [
+        "ALLOWED"
+      ],
+      "graph": {
+        "answer": [
+          "ALLOWED"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "exact": 1.0,
+        "evidence_recall": 1.0,
+        "evidence_docs": [
+          "acme_insurance_msa",
+          "claims_pipeline_architecture",
+          "document_processing_architecture",
+          "falcon_bank_msa",
+          "modelcloud_dpa",
+          "nova_retail_msa"
+        ],
+        "latency_ms": 57.13
+      },
+      "vector": {
+        "k3": {
+          "evidence_recall": 0.5,
+          "retrieved_docs": [
+            "nova_retail_msa",
+            "prior_decision_cr087",
+            "prior_decision_cr095"
+          ]
+        },
+        "k5": {
+          "evidence_recall": 0.5,
+          "retrieved_docs": [
+            "gulfgov_msa",
+            "nova_retail_msa",
+            "prior_decision_cr087",
+            "prior_decision_cr095",
+            "security_controls"
+          ]
+        },
+        "k8": {
+          "evidence_recall": 0.5,
+          "retrieved_docs": [
+            "acme_insurance_msa",
+            "claims_pipeline_architecture",
+            "gulfgov_msa",
+            "nova_retail_msa",
+            "platform_ticket_481",
+            "prior_decision_cr087",
+            "prior_decision_cr095",
+            "security_controls"
+          ]
+        }
+      }
+    },
+    {
+      "id": "q04_why_not_gulfgov",
+      "question": "Why is GulfGov not affected?",
+      "expected": [
+        "NO_DEPENDENCY"
+      ],
+      "graph": {
+        "answer": [
+          "NO_DEPENDENCY"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "exact": 1.0,
+        "evidence_recall": 1.0,
+        "evidence_docs": [
+          "acme_insurance_msa",
+          "claims_pipeline_architecture",
+          "document_processing_architecture",
+          "falcon_bank_msa",
+          "gulfgov_msa",
+          "local_search_architecture",
+          "modelcloud_dpa",
+          "nova_retail_msa"
+        ],
+        "latency_ms": 49.36
+      },
+      "vector": {
+        "k3": {
+          "evidence_recall": 0.0,
+          "retrieved_docs": [
+            "prior_decision_cr095",
+            "prior_decision_cr103"
+          ]
+        },
+        "k5": {
+          "evidence_recall": 0.0,
+          "retrieved_docs": [
+            "platform_ticket_481",
+            "prior_decision_cr087",
+            "prior_decision_cr095",
+            "prior_decision_cr103"
+          ]
+        },
+        "k8": {
+          "evidence_recall": 0.5,
+          "retrieved_docs": [
+            "local_search_architecture",
+            "platform_ticket_481",
+            "prior_decision_cr087",
+            "prior_decision_cr095",
+            "prior_decision_cr103",
+            "service_catalog"
+          ]
+        }
+      }
+    },
+    {
+      "id": "q05_systems_on_modelcloud",
+      "question": "Which systems depend on ModelCloud?",
+      "expected": [
+        "Document Processing API",
+        "Claims Pipeline"
+      ],
+      "graph": {
+        "answer": [
+          "Claims Pipeline",
+          "Document Processing API"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "exact": 1.0,
+        "evidence_recall": 1.0,
+        "evidence_docs": [
+          "claims_pipeline_architecture",
+          "document_processing_architecture"
+        ],
+        "latency_ms": 5.28
+      },
+      "vector": {
+        "k3": {
+          "evidence_recall": 0.5,
+          "retrieved_docs": [
+            "document_processing_architecture",
+            "local_search_architecture",
+            "service_catalog"
+          ]
+        },
+        "k5": {
+          "evidence_recall": 0.5,
+          "retrieved_docs": [
+            "document_processing_architecture",
+            "local_search_architecture",
+            "modelcloud_dpa",
+            "platform_ticket_481",
+            "service_catalog"
+          ]
+        },
+        "k8": {
+          "evidence_recall": 0.5,
+          "retrieved_docs": [
+            "document_processing_architecture",
+            "local_search_architecture",
+            "modelcloud_dpa",
+            "platform_ticket_481",
+            "prior_decision_cr087",
+            "service_catalog"
+          ]
+        }
+      }
+    },
+    {
+      "id": "q06_products_on_modelcloud",
+      "question": "Which products indirectly depend on ModelCloud?",
+      "expected": [
+        "DocSummarizer",
+        "ClaimsCopilot"
+      ],
+      "graph": {
+        "answer": [
+          "ClaimsCopilot",
+          "DocSummarizer"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "exact": 1.0,
+        "evidence_recall": 1.0,
+        "evidence_docs": [
+          "acme_insurance_msa",
+          "claims_pipeline_architecture",
+          "document_processing_architecture",
+          "falcon_bank_msa",
+          "nova_retail_msa"
+        ],
+        "latency_ms": 5.61
+      },
+      "vector": {
+        "k3": {
+          "evidence_recall": 0.5,
+          "retrieved_docs": [
+            "document_processing_architecture",
+            "modelcloud_dpa",
+            "service_catalog"
+          ]
+        },
+        "k5": {
+          "evidence_recall": 0.5,
+          "retrieved_docs": [
+            "document_processing_architecture",
+            "local_search_architecture",
+            "modelcloud_dpa",
+            "prior_decision_cr087",
+            "service_catalog"
+          ]
+        },
+        "k8": {
+          "evidence_recall": 1.0,
+          "retrieved_docs": [
+            "claims_pipeline_architecture",
+            "document_processing_architecture",
+            "local_search_architecture",
+            "modelcloud_dpa",
+            "platform_ticket_481",
+            "prior_decision_cr087",
+            "service_catalog"
+          ]
+        }
+      }
+    },
+    {
+      "id": "q07_customers_allow_us",
+      "question": "Which customers allow US processing?",
+      "expected": [
+        "Nova Retail"
+      ],
+      "graph": {
+        "answer": [
+          "Nova Retail"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "exact": 1.0,
+        "evidence_recall": 1.0,
+        "evidence_docs": [
+          "acme_insurance_msa",
+          "falcon_bank_msa",
+          "gulfgov_msa",
+          "nova_retail_msa"
+        ],
+        "latency_ms": 28.11
+      },
+      "vector": {
+        "k3": {
+          "evidence_recall": 0.75,
+          "retrieved_docs": [
+            "falcon_bank_msa",
+            "gulfgov_msa",
+            "nova_retail_msa"
+          ]
+        },
+        "k5": {
+          "evidence_recall": 1.0,
+          "retrieved_docs": [
+            "acme_insurance_msa",
+            "falcon_bank_msa",
+            "gulfgov_msa",
+            "nova_retail_msa",
+            "security_controls"
+          ]
+        },
+        "k8": {
+          "evidence_recall": 1.0,
+          "retrieved_docs": [
+            "acme_insurance_msa",
+            "falcon_bank_msa",
+            "gulfgov_msa",
+            "halcyon_vector_dpa",
+            "modelcloud_dpa",
+            "nova_retail_msa",
+            "oryx_cloud_agreement",
+            "security_controls"
+          ]
+        }
+      }
+    },
+    {
+      "id": "q08_owner_dpa",
+      "question": "Who owns Document Processing API?",
+      "expected": [
+        "Sarah Malik"
+      ],
+      "graph": {
+        "answer": [
+          "Sarah Malik"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "exact": 1.0,
+        "evidence_recall": 1.0,
+        "evidence_docs": [
+          "engineering_directory",
+          "team_ownership"
+        ],
+        "latency_ms": 5.66
+      },
+      "vector": {
+        "k3": {
+          "evidence_recall": 0.0,
+          "retrieved_docs": [
+            "document_processing_architecture",
+            "security_controls",
+            "service_catalog"
+          ]
+        },
+        "k5": {
+          "evidence_recall": 0.5,
+          "retrieved_docs": [
+            "document_processing_architecture",
+            "security_controls",
+            "service_catalog",
+            "team_ownership"
+          ]
+        },
+        "k8": {
+          "evidence_recall": 0.5,
+          "retrieved_docs": [
+            "document_processing_architecture",
+            "falcon_bank_msa",
+            "security_controls",
+            "service_catalog",
+            "team_ownership"
+          ]
+        }
+      }
+    },
+    {
+      "id": "q09_prior_decision_falcon",
+      "question": "What prior decision applies to Falcon Bank?",
+      "expected": [
+        "CR-087"
+      ],
+      "graph": {
+        "answer": [
+          "CR-087"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "exact": 1.0,
+        "evidence_recall": 1.0,
+        "evidence_docs": [
+          "prior_decision_cr087"
+        ],
+        "latency_ms": 7.99
+      },
+      "vector": {
+        "k3": {
+          "evidence_recall": 1.0,
+          "retrieved_docs": [
+            "customer_register",
+            "platform_ticket_481",
+            "prior_decision_cr087"
+          ]
+        },
+        "k5": {
+          "evidence_recall": 1.0,
+          "retrieved_docs": [
+            "customer_register",
+            "platform_ticket_481",
+            "prior_decision_cr087"
+          ]
+        },
+        "k8": {
+          "evidence_recall": 1.0,
+          "retrieved_docs": [
+            "customer_register",
+            "falcon_bank_msa",
+            "platform_ticket_481",
+            "prior_decision_cr087",
+            "prior_decision_cr095",
+            "prior_decision_cr103"
+          ]
+        }
+      }
+    },
+    {
+      "id": "q10_team_falcon_remediation",
+      "question": "What team should handle Falcon Bank remediation?",
+      "expected": [
+        "Platform Engineering"
+      ],
+      "graph": {
+        "answer": [
+          "Platform Engineering"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "exact": 1.0,
+        "evidence_recall": 1.0,
+        "evidence_docs": [
+          "document_processing_architecture",
+          "engineering_directory",
+          "falcon_bank_msa",
+          "modelcloud_dpa",
+          "team_ownership"
+        ],
+        "latency_ms": 14.76
+      },
+      "vector": {
+        "k3": {
+          "evidence_recall": 0.0,
+          "retrieved_docs": [
+            "platform_ticket_481",
+            "prior_decision_cr087"
+          ]
+        },
+        "k5": {
+          "evidence_recall": 0.0,
+          "retrieved_docs": [
+            "customer_register",
+            "platform_ticket_481",
+            "prior_decision_cr087"
+          ]
+        },
+        "k8": {
+          "evidence_recall": 0.333,
+          "retrieved_docs": [
+            "customer_register",
+            "engineering_directory",
+            "falcon_bank_msa",
+            "platform_ticket_481",
+            "prior_decision_cr087"
+          ]
+        }
+      }
+    },
+    {
+      "id": "q11_evidence_falcon_residency",
+      "question": "What evidence supports Falcon Bank's residency restriction?",
+      "expected": [
+        "falcon_bank_msa"
+      ],
+      "graph": {
+        "answer": [
+          "falcon_bank_msa"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "exact": 1.0,
+        "evidence_recall": 1.0,
+        "evidence_docs": [
+          "falcon_bank_msa"
+        ],
+        "latency_ms": 9.53
+      },
+      "vector": {
+        "k3": {
+          "evidence_recall": 0.0,
+          "retrieved_docs": [
+            "platform_ticket_481",
+            "prior_decision_cr087"
+          ]
+        },
+        "k5": {
+          "evidence_recall": 0.0,
+          "retrieved_docs": [
+            "customer_register",
+            "platform_ticket_481",
+            "prior_decision_cr087"
+          ]
+        },
+        "k8": {
+          "evidence_recall": 1.0,
+          "retrieved_docs": [
+            "customer_register",
+            "falcon_bank_msa",
+            "platform_ticket_481",
+            "prior_decision_cr087",
+            "security_controls"
+          ]
+        }
+      }
+    },
+    {
+      "id": "q12_modelcloud_unavailable",
+      "question": "What would break if ModelCloud were unavailable?",
+      "expected": [
+        "Falcon Bank",
+        "Acme Insurance",
+        "Nova Retail"
+      ],
+      "graph": {
+        "answer": [
+          "Acme Insurance",
+          "Falcon Bank",
+          "Nova Retail"
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "exact": 1.0,
+        "evidence_recall": 1.0,
+        "evidence_docs": [
+          "acme_insurance_msa",
+          "claims_pipeline_architecture",
+          "document_processing_architecture",
+          "falcon_bank_msa",
+          "modelcloud_dpa",
+          "nova_retail_msa"
+        ],
+        "latency_ms": 53.51
+      },
+      "vector": {
+        "k3": {
+          "evidence_recall": 0.2,
+          "retrieved_docs": [
+            "document_processing_architecture",
+            "platform_ticket_481",
+            "prior_decision_cr087"
+          ]
+        },
+        "k5": {
+          "evidence_recall": 0.2,
+          "retrieved_docs": [
+            "document_processing_architecture",
+            "local_search_architecture",
+            "platform_ticket_481",
+            "prior_decision_cr087",
+            "service_catalog"
+          ]
+        },
+        "k8": {
+          "evidence_recall": 0.4,
+          "retrieved_docs": [
+            "claims_pipeline_architecture",
+            "document_processing_architecture",
+            "local_search_architecture",
+            "modelcloud_dpa",
+            "platform_ticket_481",
+            "prior_decision_cr087",
+            "service_catalog"
+          ]
+        }
+      }
+    }
+  ]
+}

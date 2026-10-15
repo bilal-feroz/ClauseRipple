@@ -11,10 +11,17 @@ REST endpoints, MCP and the agent all call the same service layer (no duplicated
 
 from __future__ import annotations
 
+import functools
+from collections.abc import Callable
+from typing import Any
+
 from mcp.server import MCPServer
+from mcp.server.mcpserver.exceptions import ToolError
 from mcp.types import ToolAnnotations
 
 from app.agent.tools import TOOLS
+from app.graph.client import GraphUnavailableError
+from app.services.cases import GuardrailRefusal
 
 INSTRUCTIONS = (
     "ClauseRipple exposes a FalkorDB company graph (customers, contracts, clauses, obligations, vendors, "
@@ -22,6 +29,24 @@ INSTRUCTIONS = (
     "quotes; compliance verdicts come from deterministic rules, not from the model. Write tools "
     "(create_impact_case, assign_impact_case) are guarded: they refuse actions the graph does not justify."
 )
+
+
+def _anticipated(fn: Callable[..., Any]) -> Callable[..., Any]:
+    """Surface expected failures (guardrail refusals, unknown ids, FalkorDB down) to the caller as
+    ToolError text; anything else stays a crash whose details remain server-side."""
+
+    @functools.wraps(fn)
+    def wrapper(*args: Any, **kwargs: Any) -> Any:
+        try:
+            return fn(*args, **kwargs)
+        except GuardrailRefusal as exc:
+            raise ToolError(str(exc)) from exc
+        except GraphUnavailableError as exc:
+            raise ToolError("FalkorDB unavailable. Agent reasoning paused.") from exc
+        except (LookupError, ValueError) as exc:
+            raise ToolError(str(exc)) from exc
+
+    return wrapper
 
 
 def build_mcp_server() -> MCPServer:
@@ -33,7 +58,7 @@ def build_mcp_server() -> MCPServer:
     )
     for name, fn, writes in TOOLS:
         server.add_tool(
-            fn,
+            _anticipated(fn),
             name=name,
             annotations=ToolAnnotations(
                 readOnlyHint=not writes,

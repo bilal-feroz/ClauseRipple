@@ -337,10 +337,31 @@ function WhyTab({
           })}
         </div>
       </div>
+      {!verdict.affected && <GuardrailProbe customerId={verdict.customer_id} customerName={verdict.customer_name} />}
       <p className="text-[11px] text-fog">
         {evidence.edge_count} graph relationships · {evidence.doc_count} source documents. Every quote above is stored on the
         relationship in FalkorDB and was verified verbatim against its source at ingestion.
       </p>
+    </div>
+  );
+}
+
+function GuardrailProbe({ customerId, customerName }: { customerId: string; customerName: string }) {
+  const probe = useMutation({ mutationFn: () => api.requestCase(customerId) });
+  return (
+    <div className="rounded-lg border border-dashed border-line-strong p-2.5">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[11.5px] text-mist">Guardrail check: ask the agent&apos;s write tool to open a case for {customerName} anyway.</span>
+        <Button onClick={() => probe.mutate()} disabled={probe.isPending}>
+          <ShieldAlert className="h-3.5 w-3.5" /> Try create_impact_case
+        </Button>
+      </div>
+      {probe.data && (
+        <p className={cn("mt-1.5 text-[11.5px]", probe.data.refused ? "text-amber-200" : "text-red-200")} role="status">
+          {probe.data.refused ? "Refused by the graph (via MCP): " : ""}
+          {probe.data.message ?? (probe.data.created ? "Case created" : "")}
+        </p>
+      )}
     </div>
   );
 }

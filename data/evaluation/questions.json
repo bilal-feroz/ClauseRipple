@@ -1,0 +1,116 @@
+{
+  "description": "ClauseRipple evaluation set. Ground truth is defined by the synthetic AtlasAI corpus after applying ModelCloud DPA v2. 'required_docs' are the source documents an answer must draw on to be fully supported. 'graph_tool' is the ClauseRipple tool the agent uses for this question.",
+  "scenario": "ModelCloud DPA v2 adds United States processing",
+  "questions": [
+    {
+      "id": "q01_impacted_customers",
+      "question": "Which customers are affected by ModelCloud adding US processing?",
+      "answer_type": "customers",
+      "expected": ["Falcon Bank", "Acme Insurance"],
+      "required_docs": ["modelcloud_dpa", "document_processing_architecture", "claims_pipeline_architecture", "falcon_bank_msa", "acme_insurance_msa", "nova_retail_msa", "gulfgov_msa", "local_search_architecture"],
+      "graph_tool": "evaluate_residency",
+      "graph_args": {"vendor_id": "vendor:modelcloud", "change_id": "change:chg-2026-001"}
+    },
+    {
+      "id": "q02_why_falcon",
+      "question": "Why is Falcon Bank affected?",
+      "answer_type": "customers",
+      "expected": ["Falcon Bank"],
+      "required_docs": ["falcon_bank_msa", "document_processing_architecture", "modelcloud_dpa"],
+      "graph_tool": "get_source_evidence",
+      "graph_args": {"customer_id": "customer:falcon-bank", "vendor_id": "vendor:modelcloud"}
+    },
+    {
+      "id": "q03_why_not_nova",
+      "question": "Why is Nova Retail not affected?",
+      "answer_type": "verdict",
+      "expected": ["ALLOWED"],
+      "required_docs": ["nova_retail_msa", "modelcloud_dpa"],
+      "graph_tool": "evaluate_residency",
+      "graph_args": {"vendor_id": "vendor:modelcloud", "change_id": "change:chg-2026-001"},
+      "subject": "customer:nova-retail"
+    },
+    {
+      "id": "q04_why_not_gulfgov",
+      "question": "Why is GulfGov not affected?",
+      "answer_type": "verdict",
+      "expected": ["NO_DEPENDENCY"],
+      "required_docs": ["gulfgov_msa", "local_search_architecture"],
+      "graph_tool": "evaluate_residency",
+      "graph_args": {"vendor_id": "vendor:modelcloud", "change_id": "change:chg-2026-001"},
+      "subject": "customer:gulfgov"
+    },
+    {
+      "id": "q05_systems_on_modelcloud",
+      "question": "Which systems depend on ModelCloud?",
+      "answer_type": "systems",
+      "expected": ["Document Processing API", "Claims Pipeline"],
+      "required_docs": ["document_processing_architecture", "claims_pipeline_architecture"],
+      "graph_tool": "trace_vendor_dependents",
+      "graph_args": {"vendor_id": "vendor:modelcloud"}
+    },
+    {
+      "id": "q06_products_on_modelcloud",
+      "question": "Which products indirectly depend on ModelCloud?",
+      "answer_type": "products",
+      "expected": ["DocSummarizer", "ClaimsCopilot"],
+      "required_docs": ["document_processing_architecture", "claims_pipeline_architecture"],
+      "graph_tool": "find_impacted_customers",
+      "graph_args": {"vendor_id": "vendor:modelcloud"}
+    },
+    {
+      "id": "q07_customers_allow_us",
+      "question": "Which customers allow US processing?",
+      "answer_type": "customers",
+      "expected": ["Nova Retail"],
+      "required_docs": ["nova_retail_msa", "falcon_bank_msa", "acme_insurance_msa", "gulfgov_msa"],
+      "graph_tool": "customers_allowing_region",
+      "graph_args": {"code": "US"}
+    },
+    {
+      "id": "q08_owner_dpa",
+      "question": "Who owns Document Processing API?",
+      "answer_type": "people",
+      "expected": ["Sarah Malik"],
+      "required_docs": ["team_ownership", "engineering_directory"],
+      "graph_tool": "find_owner",
+      "graph_args": {"system_id": "system:document-processing-api"}
+    },
+    {
+      "id": "q09_prior_decision_falcon",
+      "question": "What prior decision applies to Falcon Bank?",
+      "answer_type": "decisions",
+      "expected": ["CR-087"],
+      "required_docs": ["prior_decision_cr087"],
+      "graph_tool": "recall_related_decisions",
+      "graph_args": {"customer_id": "customer:falcon-bank", "vendor_id": "vendor:modelcloud", "topic": "data residency"}
+    },
+    {
+      "id": "q10_team_falcon_remediation",
+      "question": "What team should handle Falcon Bank remediation?",
+      "answer_type": "teams",
+      "expected": ["Platform Engineering"],
+      "required_docs": ["falcon_bank_msa", "document_processing_architecture", "team_ownership"],
+      "graph_tool": "find_owner",
+      "graph_args": {"system_id": "system:document-processing-api"}
+    },
+    {
+      "id": "q11_evidence_falcon_residency",
+      "question": "What evidence supports Falcon Bank's residency restriction?",
+      "answer_type": "docs",
+      "expected": ["falcon_bank_msa"],
+      "required_docs": ["falcon_bank_msa"],
+      "graph_tool": "get_customer_obligations",
+      "graph_args": {"customer_id": "customer:falcon-bank"}
+    },
+    {
+      "id": "q12_modelcloud_unavailable",
+      "question": "What would break if ModelCloud were unavailable?",
+      "answer_type": "customers",
+      "expected": ["Falcon Bank", "Acme Insurance", "Nova Retail"],
+      "required_docs": ["document_processing_architecture", "claims_pipeline_architecture", "falcon_bank_msa", "acme_insurance_msa", "nova_retail_msa"],
+      "graph_tool": "find_impacted_customers",
+      "graph_args": {"vendor_id": "vendor:modelcloud"}
+    }
+  ]
+}
