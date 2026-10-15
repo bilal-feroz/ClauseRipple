@@ -8,10 +8,12 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from mcp.server.transport_security import TransportSecuritySettings
 
-from app.api.routes import demo, graph, health
+from app.api.routes import agent, cases, demo, graph, health
 from app.config import get_settings
 from app.graph.client import get_graph
+from app.mcp_server import mcp_server
 
 log = logging.getLogger("clauseripple")
 
@@ -36,14 +38,24 @@ def _auto_seed() -> None:
         log.exception("Auto-seed failed; POST /api/demo/reset to retry")
 
 
-@asynccontextmanager
-async def lifespan(_: FastAPI) -> AsyncIterator[None]:
-    _auto_seed()
-    yield
-
-
 def create_app() -> FastAPI:
     settings = get_settings()
+    # MCP over streamable HTTP at /mcp (same tools the agent uses in-process).
+    mcp_app = mcp_server.streamable_http_app(
+        stateless_http=True,
+        json_response=True,
+        transport_security=TransportSecuritySettings(
+            allowed_hosts=settings.mcp_allowed_host_list,
+            allowed_origins=settings.cors_origin_list,
+        ),
+    )
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        _auto_seed()
+        async with mcp_server.session_manager.run():
+            yield
+
     app = FastAPI(
         title="ClauseRipple API",
         version="0.1.0",
@@ -55,11 +67,14 @@ def create_app() -> FastAPI:
         allow_origins=settings.cors_origin_list,
         allow_credentials=False,
         allow_methods=["GET", "POST"],
-        allow_headers=["Content-Type", "Accept"],
+        allow_headers=["Content-Type", "Accept", "Mcp-Session-Id", "Mcp-Protocol-Version"],
     )
     app.include_router(health.router)
     app.include_router(demo.router)
     app.include_router(graph.router)
+    app.include_router(agent.router)
+    app.include_router(cases.router)
+    app.mount("/", mcp_app)  # mounted last so /mcp is served by the MCP app
     return app
 
 

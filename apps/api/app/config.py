@@ -45,9 +45,16 @@ class Settings(BaseSettings):
     data_dir: Path = REPO_ROOT / "data"
     cypher_dir: Path = REPO_ROOT / "docs" / "cypher"
 
+    # Host headers accepted by the /mcp endpoint (DNS-rebinding protection).
+    mcp_allowed_hosts: str = "localhost:8000,127.0.0.1:8000,localhost,127.0.0.1"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def mcp_allowed_host_list(self) -> list[str]:
+        return [h.strip() for h in self.mcp_allowed_hosts.split(",") if h.strip()]
 
     @property
     def demo_dir(self) -> Path:

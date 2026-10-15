@@ -23,7 +23,7 @@ OPENAI_COMPATIBLE_BASE_URLS = {
     "openrouter": "https://openrouter.ai/api/v1",
 }
 DEFAULT_MODELS = {
-    "anthropic": "claude-haiku-5-5",
+    "anthropic": "claude-opus-5-5",
     "ollama": "llama3.2:3b",
 }
 

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.api.deps import guarded
@@ -13,12 +13,16 @@ router = APIRouter(prefix="/api/demo", tags=["demo"])
 
 class ApplyChangeRequest(BaseModel):
     doc_id: str = Field(default="modelcloud_dpa", pattern=r"^[a-z0-9_]{1,64}$")
-    run_agent: bool = False
+    run_agent: bool = True
 
 
 @router.post("/reset")
 def reset() -> dict[str, Any]:
     """Clear only the ClauseRipple graph, ingest the v1 corpus, validate critical facts."""
+    from app.agent.orchestrator import active_run
+
+    if active_run():
+        raise HTTPException(409, "An agent run is in progress; reset when it completes")
     return guarded(demo.reset_demo)
 
 
@@ -36,10 +40,10 @@ def pending() -> list[dict[str, Any]]:
 @router.post("/apply-change")
 async def apply_change(req: ApplyChangeRequest) -> dict[str, Any]:
     """Incrementally apply a new document version; optionally launch the impact agent."""
-    change = guarded(demo.apply_change, req.doc_id)
-    run_id = None
-    if req.run_agent:
-        from app.agent.orchestrator import start_run
+    from app.agent.orchestrator import active_run, start_run
 
-        run_id = await start_run(change_id=change["change_id"])
+    if active_run():
+        raise HTTPException(409, "An agent run is in progress")
+    change = guarded(demo.apply_change, req.doc_id)
+    run_id = await start_run(change_id=change["change_id"]) if req.run_agent else None
     return {"change": change, "run_id": run_id}
