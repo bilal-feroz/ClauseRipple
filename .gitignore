@@ -1,0 +1,37 @@
+# Secrets / local env
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Test artifacts
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/blob-report/
+
+# Local caches (embedding models, etc.)
+.cache/
+.fastembed_cache/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+*.log

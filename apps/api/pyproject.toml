@@ -1,0 +1,42 @@
+[project]
+name = "clauseripple-api"
+version = "0.1.0"
+description = "ClauseRipple API: graph-native change-impact agent powered by FalkorDB"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "fastapi>=0.143.2",
+    "uvicorn[standard]>=0.54.0",
+    "pydantic>=2.14.1",
+    "pydantic-settings>=2.16.0",
+    "falkordb>=1.8.0",
+    "pyyaml>=6.0.3",
+    "sse-starlette>=3.5.0",
+    "httpx>=0.28.1",
+    "anthropic>=1.14.0",
+    "openai>=3.31.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.17.1",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003", "E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: needs a running FalkorDB (docker compose up -d falkordb)",
+    "llm: needs a configured LLM provider (may cost money; never run in CI)",
+]
+addopts = "-q"
