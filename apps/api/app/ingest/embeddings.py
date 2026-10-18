@@ -19,6 +19,9 @@ DIMENSION = 384
 _lock = threading.Lock()
 _model: Any = None
 _unavailable_reason: str | None = None
+# Text -> vector memo, so a demo reset re-uses vectors instead of re-running the model
+# (keeps memory flat on small hosts such as a 512 MB free instance).
+_memo: dict[str, list[float]] = {}
 
 
 def _load() -> Any:
@@ -36,7 +39,7 @@ def _load() -> Any:
             return None
         cache = os.environ.get("FASTEMBED_CACHE_PATH") or str(REPO_ROOT / ".cache" / "fastembed")
         try:
-            _model = TextEmbedding(model_name=MODEL_NAME, cache_dir=cache)
+            _model = TextEmbedding(model_name=MODEL_NAME, cache_dir=cache, threads=1)
         except Exception as exc:  # download / runtime failure
             _unavailable_reason = f"embedding model unavailable: {type(exc).__name__}"
             return None
@@ -56,7 +59,11 @@ def embed_texts(texts: list[str]) -> list[list[float]] | None:
     model = _load()
     if model is None:
         return None
-    return [v.tolist() for v in model.embed(texts)]
+    missing = list(dict.fromkeys(t for t in texts if t not in _memo))
+    if missing:
+        for text, v in zip(missing, model.embed(missing, batch_size=16), strict=True):
+            _memo[text] = v.tolist()
+    return [_memo[t] for t in texts]
 
 
 def embed_query(text: str) -> list[float] | None:
