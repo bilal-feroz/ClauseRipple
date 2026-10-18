@@ -2,7 +2,7 @@
 
 import { Loader2, RotateCcw } from "lucide-react";
 import { Logo } from "@/components/Logo";
-import { Badge, Button, Dot } from "@/components/ui";
+import { Button, Dot } from "@/components/ui";
 import { AskBar } from "./AskBar";
 import type { DemoState, Health } from "@/lib/types";
 
@@ -41,23 +41,14 @@ export function TopBar({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2" aria-live="polite">
-        {state?.state === "UPDATED" ? (
-          <Badge tone="change">Updated · DPA v{state.dpa_version}</Badge>
-        ) : state?.state === "BASELINE" ? (
-          <Badge tone="signal">Baseline · DPA v1</Badge>
-        ) : (
-          <Badge>{state?.state ?? "…"}</Badge>
-        )}
-        <Badge tone={connected ? "safe" : "impact"}>
-          <Dot tone={connected ? "safe" : "impact"} />
-          FalkorDB {connected ? `connected${health?.falkordb_version ? ` v${health.falkordb_version}` : ""}` : "unavailable"}
-        </Badge>
-        <Badge tone={connected ? "signal" : "neutral"} className="normal-case tracking-normal">
-          <Dot tone={connected ? "signal" : "neutral"} />
-          Agent {connected ? "ready" : "paused"} · {llm ? planner.slice(4) : planner ? "playbook" : "…"} · MCP
-        </Badge>
-      </div>
+      <span
+        className="flex items-center gap-1.5 rounded-full border border-line-strong bg-ink-850 px-2.5 py-1 text-[11.5px] text-mist"
+        title={`FalkorDB ${health?.falkordb_version ?? ""} · planner: ${planner || "…"} · tools via MCP`}
+        aria-live="polite"
+      >
+        <Dot tone={connected ? "safe" : "impact"} />
+        {connected ? (llm ? `Live · AI agent (${planner.slice(4)})` : "Live on FalkorDB · agent ready") : "FalkorDB offline"}
+      </span>
 
       <AskBar />
 
@@ -66,7 +57,6 @@ export function TopBar({
         {metric("nodes", stats?.nodes)}
         {metric("relationships", stats?.relationships)}
         {metric("cases", stats?.cases)}
-        {metric("decisions", stats?.decisions)}
         <Button onClick={onReset} disabled={resetting || resetDisabled || !connected} title="Clear only the ClauseRipple graph and re-ingest the v1 corpus">
           {resetting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
           Reset demo

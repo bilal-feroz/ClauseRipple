@@ -1,15 +1,16 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, BookOpen, Brain, CheckCheck, FileText, Gavel, Network, ShieldAlert, UserCheck, X } from "lucide-react";
+import { ArrowRight, BookOpen, Bot, Brain, CheckCheck, FileText, Gavel, Network, ShieldAlert, UserCheck, X } from "lucide-react";
 import { useState } from "react";
 import { Badge, Button, Quote } from "@/components/ui";
 import { api } from "@/lib/api";
 import { REL_LABEL } from "@/lib/graph-style";
 import type { AgentRunSummary, Decision, EvidenceBundle, ImpactCase, SourceDocument, Verdict } from "@/lib/types";
 import { cn, fmtMs } from "@/lib/utils";
+import { WhySteps } from "@/components/story/WhySteps";
 
-export type BottomTab = "cases" | "why" | "memory" | "sources";
+export type BottomTab = "why" | "cases" | "agent" | "memory" | "sources";
 
 export function BottomPanel({
   tab,
@@ -25,6 +26,8 @@ export function BottomPanel({
   documents,
   onViewGraph,
   onOpenEvidence,
+  agentPanel,
+  vendorName,
 }: {
   tab: BottomTab;
   setTab: (t: BottomTab) => void;
@@ -39,11 +42,14 @@ export function BottomPanel({
   documents: SourceDocument[];
   onViewGraph: (customerId: string) => void;
   onOpenEvidence: (customerId: string) => void;
+  agentPanel: React.ReactNode;
+  vendorName: string;
 }) {
   const [doc, setDoc] = useState<{ id: string; highlight?: string | null } | null>(null);
   const tabs: [BottomTab, string, React.ReactNode][] = [
-    ["cases", `Impact cases${cases.length ? ` (${cases.length})` : ""}`, <ShieldAlert key="c" className="h-3.5 w-3.5" />],
-    ["why", verdict ? `Why · ${verdict.customer_name}` : "Why? Evidence", <Network key="w" className="h-3.5 w-3.5" />],
+    ["why", verdict ? `Why · ${verdict.customer_name}` : "Why", <Network key="w" className="h-3.5 w-3.5" />],
+    ["cases", `Cases & next steps${cases.length ? ` (${cases.length})` : ""}`, <ShieldAlert key="c" className="h-3.5 w-3.5" />],
+    ["agent", "Agent steps", <Bot key="a" className="h-3.5 w-3.5" />],
     ["memory", "Company memory", <Brain key="m" className="h-3.5 w-3.5" />],
     ["sources", `Sources (${documents.length})`, <BookOpen key="s" className="h-3.5 w-3.5" />],
   ];
@@ -79,8 +85,15 @@ export function BottomPanel({
           />
         )}
         {tab === "why" && (
-          <WhyTab verdict={verdict} evidence={evidence} loading={evidenceLoading} openDoc={(id, highlight) => setDoc({ id, highlight })} />
+          <WhyTab
+            verdict={verdict}
+            evidence={evidence}
+            loading={evidenceLoading}
+            vendorName={vendorName}
+            openDoc={(id, highlight) => setDoc({ id, highlight })}
+          />
         )}
+        {tab === "agent" && <div className="h-full min-h-[240px]">{agentPanel}</div>}
         {tab === "memory" && <MemoryTab decisions={decisions} runs={runs} />}
         {tab === "sources" && <SourcesTab documents={documents} openDoc={(id) => setDoc({ id })} />}
       </div>
@@ -274,14 +287,16 @@ function WhyTab({
   verdict,
   evidence,
   loading,
+  vendorName,
   openDoc,
 }: {
   verdict: Verdict | undefined;
   evidence: EvidenceBundle | undefined;
   loading: boolean;
+  vendorName: string;
   openDoc: (id: string, highlight?: string | null) => void;
 }) {
-  if (!verdict) return <p className="text-[12px] text-fog">Select a customer in the blast radius to see exactly why.</p>;
+  if (!verdict) return <p className="text-[12px] text-fog">Click a customer to see exactly why.</p>;
   if (loading || !evidence) return <p className="text-[12px] text-fog">Loading source-backed evidence from FalkorDB…</p>;
   const dep = evidence.dependency_paths[0];
   const con = evidence.contract_paths[0];
@@ -289,7 +304,14 @@ function WhyTab({
     ? `Why is ${verdict.customer_name} impacted?`
     : `Why is ${verdict.customer_name} not impacted?`;
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
+      <WhySteps verdict={verdict} evidence={evidence} vendorName={vendorName} openDoc={openDoc} />
+      {!verdict.affected && evidence.vendor_regions.some((r) => r.change_id) && (
+        <GuardrailProbe customerId={verdict.customer_id} customerName={verdict.customer_name} />
+      )}
+      <details className="rounded-lg border border-line bg-ink-900/30 p-3">
+        <summary className="cursor-pointer text-[12px] text-fog hover:text-mist">Technical detail: graph paths and every source quote</summary>
+    <div className="mt-3 space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="text-[14px] font-semibold text-snow">{title}</h3>
         {verdict.affected ? <Badge tone="impact">{verdict.severity}</Badge> : <Badge tone="safe">no impact</Badge>}
@@ -337,11 +359,12 @@ function WhyTab({
           })}
         </div>
       </div>
-      {!verdict.affected && <GuardrailProbe customerId={verdict.customer_id} customerName={verdict.customer_name} />}
       <p className="text-[11px] text-fog">
         {evidence.edge_count} graph relationships · {evidence.doc_count} source documents. Every quote above is stored on the
         relationship in FalkorDB and was verified verbatim against its source at ingestion.
       </p>
+    </div>
+      </details>
     </div>
   );
 }
@@ -351,7 +374,7 @@ function GuardrailProbe({ customerId, customerName }: { customerId: string; cust
   return (
     <div className="rounded-lg border border-dashed border-line-strong p-2.5">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-[11.5px] text-mist">Guardrail check: ask the agent&apos;s write tool to open a case for {customerName} anyway.</span>
+        <span className="text-[11.5px] text-mist">Safety check: try to make the agent open a case for {customerName} anyway — the graph should refuse.</span>
         <Button onClick={() => probe.mutate()} disabled={probe.isPending}>
           <ShieldAlert className="h-3.5 w-3.5" /> Try create_impact_case
         </Button>

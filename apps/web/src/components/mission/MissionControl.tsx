@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Boxes, Network } from "lucide-react";
+import { Boxes, Network, Waypoints } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EvidenceGraph, WholeGraph2D } from "@/components/graph/EvidenceGraph";
 import { RippleSpace } from "@/components/graph/RippleSpace";
@@ -11,26 +11,15 @@ import type { NodeStatus } from "@/lib/graph-style";
 import { restingStatuses, revealsFromSteps } from "@/lib/status";
 import type { GNode } from "@/lib/types";
 import { cn, prefersReducedMotion } from "@/lib/utils";
+import { ChangeStory, type AppliedChange } from "@/components/story/ChangeStory";
+import { ImpactFlow } from "@/components/story/ImpactFlow";
+import { ImpactResult } from "@/components/story/ImpactResult";
+import { TOOL_PLAIN } from "@/components/story/plain";
 import { AgentTrace } from "./AgentTrace";
-import { BlastRadius } from "./BlastRadius";
 import { BottomPanel, type BottomTab } from "./BottomPanel";
-import { ChangePanel, type AppliedChange } from "./ChangePanel";
 import { TopBar } from "./TopBar";
 
 const VENDOR = "vendor:modelcloud";
-
-const STEP_CAPTION: Record<string, string> = {
-  inspect_change: "Depth 0 · change detected at the vendor",
-  trace_vendor_dependents: "Depth 1 · systems that depend on the vendor",
-  find_impacted_customers: "Depth 2–3 · products and downstream customers",
-  get_customer_obligations: "Depth 4 · contract obligations",
-  evaluate_residency: "Depth 4 · obligations vs. processing regions",
-  recall_related_decisions: "Memory · prior decisions recalled",
-  find_owner: "Ownership · team and accountable lead",
-  get_source_evidence: "Provenance · source quotes gathered",
-  create_impact_case: "Action · impact case written to FalkorDB",
-  assign_impact_case: "Action · case assigned to graph owner",
-};
 
 export function MissionControl() {
   const qc = useQueryClient();
@@ -51,8 +40,8 @@ export function MissionControl() {
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
   const [selectedCase, setSelectedCase] = useState<string | null>(null);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
-  const [centerTab, setCenterTab] = useState<"ripple" | "evidence">("ripple");
-  const [bottomTab, setBottomTab] = useState<BottomTab>("cases");
+  const [centerTab, setCenterTab] = useState<"flow" | "ripple" | "evidence">("flow");
+  const [bottomTab, setBottomTab] = useState<BottomTab>("why");
   const [rippleKey, setRippleKey] = useState(0);
   const [reducedMotion] = useState(prefersReducedMotion);
   const [completedAt, setCompletedAt] = useState<number | null>(null);
@@ -97,7 +86,8 @@ export function MissionControl() {
       });
       setCompletedAt(null);
       setRunId(res.run_id);
-      setCenterTab("ripple");
+      setSelectedCustomer(null);
+      setBottomTab("why");
       // the graph now contains the new fact + ChangeEvent; statuses stay gated by agent events
       void qc.invalidateQueries({ queryKey: ["graph"] });
       void qc.invalidateQueries({ queryKey: ["state"] });
@@ -168,7 +158,6 @@ export function MissionControl() {
   }, [reveals, resting]);
 
   const evaluated = run.steps.some((s) => s.tool === "evaluate_residency" && s.status === "ok");
-  const revealedCustomers = running && !evaluated ? new Set<string>() : null;
 
   const verdicts = impact.data?.verdicts ?? [];
   const activeCustomer =
@@ -184,34 +173,26 @@ export function MissionControl() {
     enabled: graphUp && !!activeCustomer,
   });
 
-  // Prior decisions the agent actually used: live from recall steps, at rest from RELATED_TO edges.
-  const decisionsRecalled = useMemo(() => {
-    if (running) {
-      const ids = run.steps
-        .filter((s) => s.tool === "recall_related_decisions")
-        .map((s) => (s.data as { best_match?: { decision_id: string } | null } | null)?.best_match?.decision_id)
-        .filter(Boolean);
-      return new Set(ids).size;
-    }
-    return new Set((graph.data?.edges ?? []).filter((e) => e.type === "RELATED_TO").map((e) => e.target)).size;
-  }, [running, run.steps, graph.data]);
-
   const selectCustomer = (id: string) => {
     setSelectedCustomer(id);
     setSelectedNode(id);
     setBottomTab("why");
   };
 
+  const openCase = (id: string) => {
+    setSelectedCase(id);
+    setSelectedNode(id);
+    setBottomTab("cases");
+  };
+
   const onSelectNode = (n: GNode) => {
     setSelectedNode(n.id);
     if (n.label === "Customer") selectCustomer(n.id);
-    if (n.label === "ImpactCase") {
-      setSelectedCase(n.id);
-      setBottomTab("cases");
-    }
+    if (n.label === "ImpactCase") openCase(n.id);
   };
 
-  const caption = running && lastStep ? `${STEP_CAPTION[lastStep.tool] ?? lastStep.tool} — ${lastStep.summary ?? ""}` : null;
+  const caption = running && lastStep ? `${TOOL_PLAIN[lastStep.tool] ?? lastStep.tool} — ${lastStep.summary ?? ""}` : null;
+  const checking = updated && running && !evaluated;
   const busy = running || apply.isPending || reset.isPending;
 
   return (
@@ -237,65 +218,82 @@ export function MissionControl() {
         </div>
       )}
 
-      <main className="grid min-h-0 flex-1 gap-2 p-2 lg:grid-cols-[318px_minmax(0,1fr)_372px] lg:grid-rows-[minmax(0,1fr)_282px]">
-        <aside className="flex min-h-0 flex-col gap-2 lg:row-span-2 lg:overflow-y-auto" aria-label="Change event and blast radius">
-          <ChangePanel
+      <main className="grid min-h-0 flex-1 gap-3 p-3 lg:grid-cols-[330px_minmax(0,1fr)_360px] lg:grid-rows-[minmax(0,1fr)_300px]">
+        <aside className="flex min-h-0 flex-col gap-2" aria-label="What changed">
+          <ChangeStory
             pending={pending.data?.[0]}
-            state={state.data}
+            updated={updated}
             applied={appliedView}
+            impact={impact.data}
+            cases={cases.data ?? []}
+            run={run}
             onApply={() => apply.mutate()}
             applying={apply.isPending}
             disabled={!graphUp || busy}
+            onShowAgent={() => setBottomTab("agent")}
           />
           {apply.error && (
             <p role="alert" className="rounded-md border border-impact/40 bg-impact/10 p-2 text-[11.5px] text-red-200">
               {String(apply.error.message)}
             </p>
           )}
-          <BlastRadius
-            impact={impact.data}
-            cases={cases.data ?? []}
-            decisionsRecalled={decisionsRecalled}
-            updated={updated && !(running && !evaluated)}
-            selectedCustomer={activeCustomer}
-            onSelectCustomer={selectCustomer}
-            revealedCustomers={revealedCustomers}
-          />
-          <p className="px-1 text-[10.5px] leading-snug text-fog">
-            Synthetic AtlasAI world — every company, person and document is fictional.
-          </p>
         </aside>
 
-        <section className="panel relative flex min-h-[60vh] flex-col overflow-hidden lg:min-h-0" aria-label="Graph views">
-          <div role="tablist" className="flex items-center gap-1 border-b border-line px-2 pt-1.5">
-            {(
-              [
-                ["ripple", "RippleSpace", <Boxes key="r" className="h-3.5 w-3.5" />],
-                ["evidence", "Evidence graph", <Network key="e" className="h-3.5 w-3.5" />],
-              ] as const
-            ).map(([key, label, icon]) => (
-              <button
-                key={key}
-                role="tab"
-                type="button"
-                aria-selected={centerTab === key}
-                onClick={() => setCenterTab(key)}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-t-md border-b-2 px-3 py-1.5 text-[12.5px] transition",
-                  centerTab === key ? "border-signal text-snow" : "border-transparent text-fog hover:text-mist",
-                )}
-              >
-                {icon}
-                {label}
-              </button>
-            ))}
-            <span className="ml-auto pb-1 text-[10.5px] text-fog">
-              live FalkorDB graph · {graph.data?.nodes.length ?? 0} nodes · {graph.data?.edges.length ?? 0} relationships shown
-            </span>
+        <section className="panel relative flex min-h-[60vh] flex-col overflow-hidden lg:min-h-0" aria-label="How the change spreads">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-line px-4 pt-2">
+            <h2 className="pb-1.5 text-[15px] font-semibold text-snow">How the change spreads</h2>
+            <div role="tablist" className="flex items-center gap-1">
+              {(
+                [
+                  ["flow", "Map", <Waypoints key="f" className="h-3.5 w-3.5" />],
+                  ["ripple", "3D view", <Boxes key="r" className="h-3.5 w-3.5" />],
+                  ["evidence", "Evidence graph", <Network key="e" className="h-3.5 w-3.5" />],
+                ] as const
+              ).map(([key, label, icon]) => (
+                <button
+                  key={key}
+                  role="tab"
+                  type="button"
+                  aria-selected={centerTab === key}
+                  onClick={() => setCenterTab(key)}
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-t-md border-b-2 px-2.5 py-1.5 text-[12.5px] transition",
+                    centerTab === key ? "border-signal text-snow" : "border-transparent text-fog hover:text-mist",
+                  )}
+                >
+                  {icon}
+                  {label}
+                </button>
+              ))}
+            </div>
+            <div className="ml-auto flex items-center gap-3 pb-1.5 text-[11px] text-fog">
+              <Legend color="bg-amber-400" label="changed" />
+              <Legend color="bg-orange-400" label="being checked" />
+              <Legend color="bg-red-500" label="broken" />
+              <Legend color="bg-emerald-500" label="fine" />
+            </div>
           </div>
           <div className="grid-backdrop relative min-h-0 flex-1">
-            {centerTab === "ripple" ? (
-              graph.data ? (
+            {centerTab === "flow" && (
+              <>
+                <ImpactFlow
+                  impact={impact.data}
+                  graph={graph.data}
+                  statuses={statuses}
+                  updated={updated}
+                  showVerdicts={!running || evaluated}
+                  onSelectCustomer={selectCustomer}
+                />
+                {caption && (
+                  <div className="pointer-events-none absolute bottom-3 left-1/2 max-w-[90%] -translate-x-1/2 rounded-full border border-change/40 bg-ink-900/90 px-4 py-1.5 text-[12px] text-snow shadow-lg">
+                    <span className="mr-2 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-change align-middle" />
+                    {caption}
+                  </div>
+                )}
+              </>
+            )}
+            {centerTab === "ripple" &&
+              (graph.data ? (
                 <RippleSpace
                   graph={graph.data}
                   statuses={statuses}
@@ -312,26 +310,27 @@ export function MissionControl() {
                 />
               ) : (
                 <div className="flex h-full items-center justify-center text-sm text-fog">Loading the company graph from FalkorDB…</div>
-              )
-            ) : (
+              ))}
+            {centerTab === "evidence" && (
               <EvidenceGraph bundle={evidence.data} verdict={verdict} vendorName={impact.data?.vendor_name ?? "ModelCloud"} />
             )}
           </div>
         </section>
 
-        <aside className="flex min-h-[420px] flex-col lg:min-h-0" aria-label="Agent trace">
-          <AgentTrace
-            run={run}
-            history={runs.data ?? []}
-            onReplay={(id) => {
-              setCompletedAt(null);
-              setRunId(id);
-            }}
-            onFocusEntities={(ids) => setSelectedNode(ids.find((i) => i.startsWith("customer:") || i.startsWith("system:") || i.startsWith("case:")) ?? ids[0] ?? null)}
+        <aside className="flex min-h-[420px] flex-col lg:min-h-0" aria-label="Who is affected">
+          <ImpactResult
+            impact={impact.data}
+            graph={graph.data}
+            cases={cases.data ?? []}
+            updated={updated}
+            checking={checking}
+            selectedCustomer={activeCustomer}
+            onSelectCustomer={selectCustomer}
+            onOpenCase={openCase}
           />
         </aside>
 
-        <div className="min-h-[300px] lg:col-span-2 lg:col-start-2 lg:min-h-0">
+        <div className="min-h-[320px] lg:col-span-3 lg:min-h-0">
           <BottomPanel
             tab={bottomTab}
             setTab={setBottomTab}
@@ -347,6 +346,7 @@ export function MissionControl() {
             decisions={decisions.data ?? []}
             runs={runs.data ?? []}
             documents={documents.data ?? []}
+            vendorName={impact.data?.vendor_name ?? "ModelCloud"}
             onViewGraph={(customerId) => {
               setSelectedCustomer(customerId);
               setCenterTab("evidence");
@@ -355,9 +355,31 @@ export function MissionControl() {
               setSelectedCustomer(customerId);
               setBottomTab("why");
             }}
+            agentPanel={
+              <AgentTrace
+                run={run}
+                history={runs.data ?? []}
+                onReplay={(id) => {
+                  setCompletedAt(null);
+                  setRunId(id);
+                }}
+                onFocusEntities={(ids) =>
+                  setSelectedNode(ids.find((i) => i.startsWith("customer:") || i.startsWith("system:") || i.startsWith("case:")) ?? ids[0] ?? null)
+                }
+              />
+            }
           />
         </div>
       </main>
     </div>
+  );
+}
+
+function Legend({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="flex items-center gap-1.5">
+      <span className={cn("h-2 w-2 rounded-full", color)} />
+      {label}
+    </span>
   );
 }
