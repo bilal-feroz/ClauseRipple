@@ -47,120 +47,131 @@ export function ChangeStory({
   const assigned = cases.filter((c) => c.assignee);
 
   return (
-    <section className="panel flex h-full min-h-0 flex-col p-4" aria-labelledby="change-title">
-      <div className="mb-4 flex items-center justify-between gap-2">
-        <h2 id="change-title" className="text-[17px] font-semibold tracking-tight text-snow">
+    <section className="panel flex h-full min-h-0 flex-col p-5" aria-labelledby="change-title">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+        <h2 id="change-title" className="whitespace-nowrap text-[19px] font-semibold tracking-tight text-snow">
           {updated ? "What changed" : "What's about to change"}
         </h2>
         <span
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium",
-            updated ? "border-change/50 bg-change/10 text-amber-200" : "border-signal/40 bg-signal/10 text-sky-200",
+            "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12px] font-medium",
+            updated ? "border-amber-400/60 bg-amber-500/10 text-amber-200" : "border-sky-400/50 bg-sky-500/10 text-sky-200",
           )}
         >
-          <span className={cn("h-1.5 w-1.5 rounded-full", updated ? "bg-change" : "bg-signal")} />
+          <span className={cn("h-2 w-2 rounded-full", updated ? "bg-amber-400" : "bg-sky-400")} />
           {updated ? "Contract updated · v2" : "Today · v1"}
         </span>
       </div>
 
       {!updated ? (
         <div className="flex min-h-0 flex-1 flex-col">
-          <Row icon={<FileText className="h-5 w-5 text-sky-300" />} n={1}>
-            <div className="font-semibold text-snow">ModelCloud is changing its contract</div>
-            <div className="text-[12.5px] text-mist">Its data processing terms (DPA) go from v1 to v2.</div>
-          </Row>
-          <Row icon={<Globe2 className="h-5 w-5 text-sky-300" />} n={2}>
-            <div className="font-semibold text-snow">Where it may process customer data</div>
-            <div className="mt-1.5 space-y-1.5 text-[12.5px]">
-              <div className="flex flex-wrap items-center gap-1.5 text-mist">
-                Today:
-                {before.map((c) => (
-                  <Chip key={c}>{c}</Chip>
-                ))}
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <Row icon={<FileText className="h-6 w-6 text-sky-300" />} n={1} line>
+              <div className="text-[15.5px] font-semibold text-snow">ModelCloud is changing its contract</div>
+              <div className="mt-0.5 text-[14px] text-mist">Its data processing terms (DPA) go from v1 to v2.</div>
+            </Row>
+            <Row icon={<Globe2 className="h-6 w-6 text-sky-300" />} n={2} line>
+              <div className="text-[15.5px] font-semibold text-snow">Where it may process customer data</div>
+              <div className="mt-2.5 space-y-2 text-[14px]">
+                <div className="flex flex-wrap items-center gap-2 text-mist">
+                  <span className="mr-0.5">Today:</span>
+                  {before.map((c) => (
+                    <Chip key={c}>{c}</Chip>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-2 text-mist">
+                  <span className="mr-0.5">New version:</span>
+                  {after.map((c) => (
+                    <Chip key={c} tone={added.includes(c) ? "change" : undefined}>
+                      {c}
+                      {added.includes(c) ? " · new" : ""}
+                    </Chip>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-1.5 text-mist">
-                New version:
-                {after.map((c) => (
-                  <Chip key={c} tone={added.includes(c) ? "change" : undefined}>
-                    {c}
-                    {added.includes(c) ? " · new" : ""}
-                  </Chip>
-                ))}
+            </Row>
+            <details className="mb-4 ml-[52px] text-[14px] text-mist">
+              <summary className="cursor-pointer hover:text-snow">Show the exact sentence that changed</summary>
+              <div className="mt-2 space-y-1 rounded-lg border border-line bg-ink-950/80 p-2.5 font-mono text-[11.5px] leading-snug">
+                {diff
+                  .filter((l) => l.kind === "add" || l.kind === "del")
+                  .map((l, i) => (
+                    <div key={i} className={l.kind === "del" ? "text-red-200/80 line-through" : "text-green-100"}>
+                      {l.kind === "del" ? "− " : "+ "}
+                      {l.text}
+                    </div>
+                  ))}
               </div>
-            </div>
-          </Row>
-          <details className="mb-3 ml-11 text-[12px] text-fog">
-            <summary className="cursor-pointer hover:text-mist">Show the exact sentence that changed</summary>
-            <div className="mt-2 space-y-1 rounded-md border border-line bg-ink-950/80 p-2 font-mono text-[11px] leading-snug">
-              {diff
-                .filter((l) => l.kind === "add" || l.kind === "del")
-                .map((l, i) => (
-                  <div key={i} className={l.kind === "del" ? "text-red-200/80 line-through" : "text-green-100"}>
-                    {l.kind === "del" ? "− " : "+ "}
-                    {l.text}
-                  </div>
-                ))}
-            </div>
-          </details>
-          <div className="mt-auto">
+            </details>
+          </div>
+          <div className="mt-3">
             <button
               type="button"
               onClick={onApply}
               disabled={applying || disabled}
-              className="flex w-full items-center justify-center gap-2 rounded-xl border border-change/70 bg-gradient-to-b from-change/30 to-change/15 px-4 py-3 text-[14px] font-semibold text-amber-50 shadow-[0_0_30px_-8px_rgba(245,158,11,0.6)] transition hover:from-change/40 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-amber-400 bg-gradient-to-b from-amber-500/75 to-amber-700/60 px-4 py-3.5 text-[16px] font-semibold text-white shadow-[0_0_32px_-6px_rgba(245,158,11,0.75),inset_0_1px_0_rgba(255,255,255,0.25)] transition hover:from-amber-400/85 hover:to-amber-600/70 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {applying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
+              {applying ? <Loader2 className="h-5 w-5 animate-spin" /> : <Zap className="h-5 w-5 text-amber-100" />}
               {applying ? "Applying…" : "Apply the new contract"}
             </button>
-            <p className="mt-2 text-center text-[11.5px] text-fog">Then watch ClauseRipple find who it breaks.</p>
           </div>
         </div>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col">
-          <Row icon={<FileText className="h-5 w-5 text-amber-300" />} n={1} done>
-            <div className="font-semibold text-snow">ModelCloud&apos;s contract changed</div>
-            <div className="text-[12.5px] text-mist">Data processing terms updated from v1 to v2{applied ? ` (${applied.ref})` : ""}.</div>
-          </Row>
-          <Row icon={<Globe2 className="h-5 w-5 text-amber-300" />} n={2} done>
-            <div className="font-semibold text-snow">New place data can go</div>
-            <div className="text-[12.5px] text-mist">
-              Added: <span className="font-semibold text-amber-200">{added.length ? listRegions(added.map((c) => (c === "US" ? "United States" : c))) : "—"}</span>
-            </div>
-          </Row>
-          <Row icon={running && !evaluated ? <Loader2 className="h-5 w-5 animate-spin text-amber-300" /> : <Users className="h-5 w-5 text-red-300" />} n={3} done={evaluated}>
-            {running && !evaluated ? (
-              <div className="font-semibold text-snow">Checking every customer…</div>
-            ) : (
-              <>
-                <div className="font-semibold text-snow">
-                  {impacted.length} customer{impacted.length === 1 ? "" : "s"} now in breach
-                </div>
-                <div className="text-[12.5px] text-mist">{impacted.map((v) => v.customer_name).join(" and ") || "Nobody is affected"}</div>
-              </>
-            )}
-          </Row>
-          <Row icon={<UserCheck className="h-5 w-5 text-sky-300" />} n={4} done={assigned.length > 0}>
-            {assigned.length ? (
-              <>
-                <div className="font-semibold text-snow">Owners notified</div>
-                <div className="text-[12.5px] text-mist">
-                  {assigned.map((c) => `${c.ref} → ${c.assignee}`).join(" · ")}
-                </div>
-              </>
-            ) : (
-              <div className="font-semibold text-fog">{running ? "Finding who needs to act…" : "Waiting for the agent"}</div>
-            )}
-          </Row>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <Row icon={<FileText className="h-6 w-6 text-amber-300" />} n={1} done line>
+              <div className="text-[15.5px] font-semibold text-snow">ModelCloud&apos;s contract changed</div>
+              <div className="mt-0.5 text-[14px] text-mist">Data processing terms updated from v1 to v2{applied ? ` (${applied.ref})` : ""}.</div>
+            </Row>
+            <Row icon={<Globe2 className="h-6 w-6 text-amber-300" />} n={2} done line>
+              <div className="text-[15.5px] font-semibold text-snow">New place data can go</div>
+              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[14px] text-mist">
+                Added:
+                {added.length ? (
+                  <Chip tone="change">{listRegions(added.map((c) => (c === "US" ? "United States" : c)))}</Chip>
+                ) : (
+                  "—"
+                )}
+              </div>
+            </Row>
+            <Row
+              icon={running && !evaluated ? <Loader2 className="h-6 w-6 animate-spin text-amber-300" /> : <Users className="h-6 w-6 text-red-300" />}
+              n={3}
+              done={evaluated}
+              line
+            >
+              {running && !evaluated ? (
+                <div className="text-[15.5px] font-semibold text-snow">Checking every customer…</div>
+              ) : (
+                <>
+                  <div className="text-[15.5px] font-semibold text-snow">
+                    {impacted.length} customer{impacted.length === 1 ? "" : "s"} now in breach
+                  </div>
+                  <div className="mt-0.5 text-[14px] text-mist">{impacted.map((v) => v.customer_name).join(" and ") || "Nobody is affected"}</div>
+                </>
+              )}
+            </Row>
+            <Row icon={<UserCheck className="h-6 w-6 text-sky-300" />} n={4} done={assigned.length > 0}>
+              {assigned.length ? (
+                <>
+                  <div className="text-[15.5px] font-semibold text-snow">Owners notified</div>
+                  <div className="mt-0.5 text-[14px] text-mist">{assigned.map((c) => `${c.ref} → ${c.assignee}`).join(" · ")}</div>
+                </>
+              ) : (
+                <div className="text-[15.5px] font-semibold text-fog">{running ? "Finding who needs to act…" : "Waiting for the agent"}</div>
+              )}
+            </Row>
+          </div>
 
           <button
             type="button"
             onClick={onShowAgent}
-            className="mt-auto flex items-center gap-2 rounded-lg border border-line bg-ink-900/70 px-3 py-2 text-left text-[12px] text-mist transition hover:border-line-strong hover:text-snow"
+            className="mt-3 flex items-center gap-2.5 rounded-xl border border-line-strong bg-ink-900/70 px-3.5 py-3 text-left text-[13.5px] text-mist transition hover:border-sky-400/50 hover:text-snow"
           >
             {running ? (
-              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-change" />
+              <Loader2 className="h-4 w-4 shrink-0 animate-spin text-change" />
             ) : (
-              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-safe" />
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-400" />
             )}
             <span className="min-w-0 flex-1 truncate">
               {running
@@ -169,7 +180,7 @@ export function ChangeStory({
                   ? `Agent finished in ${run.completed.tool_count} steps`
                   : "See what the agent did"}
             </span>
-            <ArrowRight className="h-3.5 w-3.5 shrink-0" />
+            <ArrowRight className="h-4 w-4 shrink-0" />
           </button>
         </div>
       )}
@@ -177,19 +188,25 @@ export function ChangeStory({
   );
 }
 
-function Row({ icon, n, done, children }: { icon: ReactNode; n: number; done?: boolean; children: ReactNode }) {
+/** One numbered step of the story; `line` draws the timeline down to the next step. */
+function Row({ icon, n, done, line, children }: { icon: ReactNode; n: number; done?: boolean; line?: boolean; children: ReactNode }) {
   return (
-    <div className="mb-4 flex gap-3">
+    <div className="relative flex gap-3 pb-5">
+      {line && <span aria-hidden className="absolute bottom-0 left-4 top-10 w-px -translate-x-1/2 bg-gradient-to-b from-sky-400/40 to-line-strong" />}
       <span
         className={cn(
-          "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[12.5px] font-bold",
-          done ? "bg-signal text-ink-950" : "bg-ink-700 text-mist",
+          "relative mt-1.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-[14px] font-bold",
+          done
+            ? "border-sky-300 bg-sky-400 text-ink-950 shadow-[0_0_14px_-2px_rgba(56,189,248,0.8)]"
+            : "border-line-strong bg-ink-850 text-snow",
         )}
       >
         {n}
       </span>
-      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line bg-ink-900/70">{icon}</span>
-      <div className="min-w-0 text-[13.5px] leading-snug">{children}</div>
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-line-strong bg-ink-900/80 shadow-[inset_0_0_12px_-6px_rgba(56,189,248,0.5)]">
+        {icon}
+      </span>
+      <div className="min-w-0 pt-0.5 leading-snug">{children}</div>
     </div>
   );
 }
@@ -198,8 +215,10 @@ function Chip({ children, tone }: { children: ReactNode; tone?: "change" }) {
   return (
     <span
       className={cn(
-        "rounded-md border px-1.5 py-0.5 text-[11.5px] font-semibold",
-        tone === "change" ? "border-change/60 bg-change/15 text-amber-100" : "border-line-strong bg-ink-800 text-mist",
+        "rounded-lg border px-2.5 py-1 text-[13px] font-bold",
+        tone === "change"
+          ? "border-amber-400/80 bg-amber-500/15 text-amber-300 shadow-[0_0_14px_-4px_rgba(245,158,11,0.7)]"
+          : "border-slate-500/50 bg-ink-800/80 text-snow",
       )}
     >
       {children}

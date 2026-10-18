@@ -26,23 +26,23 @@ export function TopBar({
   const llm = planner.startsWith("llm:");
   const stats = state?.stats;
   const metric = (label: string, value: number | undefined) => (
-    <div className="flex flex-col items-end leading-none">
-      <span className="font-mono text-[13px] font-semibold text-snow tabular-nums">{value ?? "—"}</span>
-      <span className="mt-0.5 text-[9.5px] uppercase tracking-wider text-fog">{label}</span>
+    <div className="flex flex-col items-center leading-none">
+      <span className="text-[20px] font-semibold text-snow tabular-nums">{value ?? "—"}</span>
+      <span className="mt-1 text-[10.5px] uppercase tracking-wider text-mist">{label}</span>
     </div>
   );
   return (
-    <header className="relative z-30 flex flex-wrap items-center gap-x-5 gap-y-2 border-b border-line bg-ink-900/90 px-4 py-2 backdrop-blur">
-      <div className="flex items-center gap-2.5">
-        <Logo />
+    <header className="relative z-30 flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-line bg-ink-950/70 px-5 py-3 backdrop-blur">
+      <div className="flex items-center gap-3">
+        <Logo size={38} />
         <div className="leading-tight">
-          <div className="text-[15px] font-semibold tracking-tight text-snow">ClauseRipple</div>
-          <div className="text-[10.5px] text-fog">One clause changes. See what breaks.</div>
+          <div className="text-[21px] font-semibold tracking-tight text-snow">ClauseRipple</div>
+          <div className="text-[13px] text-mist">One clause changes. See what breaks.</div>
         </div>
       </div>
 
       <span
-        className="flex items-center gap-1.5 rounded-full border border-line-strong bg-ink-850 px-2.5 py-1 text-[11.5px] text-mist"
+        className="flex items-center gap-2 rounded-full border border-line-strong bg-ink-850/80 px-3.5 py-1.5 text-[13px] text-mist"
         title={`FalkorDB ${health?.falkordb_version ?? ""} · planner: ${planner || "…"} · tools via MCP`}
         aria-live="polite"
       >
@@ -52,13 +52,18 @@ export function TopBar({
 
       <AskBar />
 
-      <div className="ml-auto flex items-center gap-4">
+      <div className="ml-auto flex items-center gap-6">
         {metric("documents", stats?.documents)}
         {metric("nodes", stats?.nodes)}
         {metric("relationships", stats?.relationships)}
         {metric("cases", stats?.cases)}
-        <Button onClick={onReset} disabled={resetting || resetDisabled || !connected} title="Clear only the ClauseRipple graph and re-ingest the v1 corpus">
-          {resetting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+        <Button
+          onClick={onReset}
+          disabled={resetting || resetDisabled || !connected}
+          title="Clear only the ClauseRipple graph and re-ingest the v1 corpus"
+          className="rounded-xl px-4 py-2.5 text-[14px] font-semibold text-snow"
+        >
+          {resetting ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
           Reset demo
         </Button>
       </div>

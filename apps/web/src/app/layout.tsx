@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     "Autonomous change-impact intelligence powered by FalkorDB: a graph-native agent traces how one contract change ripples through systems, products, customers, obligations and owners.",
 };
 
-export const viewport: Viewport = { themeColor: "#05070a" };
+export const viewport: Viewport = { themeColor: "#040914" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

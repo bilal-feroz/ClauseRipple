@@ -43,16 +43,16 @@ export function AskBar() {
 
   const r = ask.data;
   return (
-    <div className="relative min-w-[260px] flex-1 lg:max-w-[520px]">
+    <div className="relative min-w-[260px] flex-1 lg:max-w-[620px]">
       <form
         onSubmit={(e) => {
           e.preventDefault();
           submit(q);
         }}
-        className="flex items-center gap-2 rounded-lg border border-line-strong bg-ink-850 px-2.5 py-1.5 focus-within:border-signal/60"
+        className="flex items-center gap-2.5 rounded-xl border border-line-strong bg-ink-850/80 px-3.5 py-2.5 focus-within:border-signal/60"
         role="search"
       >
-        <Search className="h-3.5 w-3.5 shrink-0 text-fog" />
+        <Search className="h-4 w-4 shrink-0 text-mist" />
         <input
           ref={input}
           value={q}
@@ -61,12 +61,12 @@ export function AskBar() {
           onBlur={() => setTimeout(() => setFocused(false), 150)}
           placeholder="Ask ClauseRipple — e.g. Why is Falcon Bank impacted?"
           aria-label="Ask ClauseRipple a question about the company graph"
-          className="min-w-0 flex-1 bg-transparent text-[12.5px] text-snow placeholder:text-fog focus:outline-none"
+          className="min-w-0 flex-1 bg-transparent text-[14px] text-snow placeholder:text-mist/80 focus:outline-none"
         />
         {ask.isPending ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin text-signal" />
         ) : (
-          <kbd className="hidden rounded border border-line px-1 font-mono text-[10px] text-fog sm:inline">Ctrl K</kbd>
+          <kbd className="hidden rounded-md border border-line-strong px-1.5 py-0.5 font-mono text-[11px] text-fog sm:inline">Ctrl K</kbd>
         )}
       </form>
 

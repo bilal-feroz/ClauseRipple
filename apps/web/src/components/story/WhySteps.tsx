@@ -69,51 +69,60 @@ export function WhySteps({
   const changed = evidence.vendor_regions.some((r) => r.change_id);
   return (
     <div>
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <h3 className="text-[16px] font-semibold text-snow">
+      <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <h3 className="text-[20px] font-semibold tracking-tight text-snow">
           Why {verdict.customer_name} is {impacted ? "impacted" : "not affected"}
         </h3>
         <span
           className={cn(
-            "rounded-md border px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide",
-            impacted ? "border-red-500/70 bg-red-500/15 text-red-200" : "border-emerald-500/60 bg-emerald-500/10 text-emerald-200",
+            "rounded-lg border px-2.5 py-1 text-[12.5px] font-bold uppercase tracking-wide",
+            impacted ? "border-red-400/80 bg-red-500/20 text-red-200" : "border-emerald-400/70 bg-emerald-500/10 text-emerald-300",
           )}
         >
           {impacted ? verdict.severity : "No impact"}
         </span>
-        <span className="text-[12px] text-fog">Click a step to see the exact sentence it comes from.</span>
+        <span className="text-[14px] text-mist">Click a step to see the exact sentence it comes from.</span>
       </div>
 
-      <ol className="flex flex-wrap items-stretch gap-2">
+      <ol className="flex flex-wrap items-stretch gap-2 xl:flex-nowrap">
         {steps.map((s, i) => (
-          <li key={i} className="flex items-stretch gap-2">
+          <li key={i} className="flex min-w-[200px] flex-1 items-stretch gap-2">
             <button
               type="button"
               onClick={() => setOpen(open === i ? null : i)}
               aria-expanded={open === i}
               className={cn(
-                "flex w-[230px] items-start gap-2.5 rounded-xl border bg-ink-900/70 p-3 text-left transition hover:border-sky-500/50",
-                s.tone === "change" ? "border-amber-500/50" : "border-line",
-                open === i && "border-sky-500/70",
+                "flex min-h-[100px] flex-1 items-start gap-3 rounded-2xl border bg-ink-900/60 p-3.5 text-left transition hover:border-sky-400/60",
+                s.tone === "change" ? "border-amber-400/60 bg-amber-500/[0.06]" : "border-line-strong",
+                open === i && "border-sky-400/80 shadow-[0_0_22px_-8px_rgba(56,189,248,0.8)]",
               )}
             >
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-signal text-[12px] font-bold text-ink-950">{i + 1}</span>
+              <span
+                className={cn(
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[14px] font-bold text-ink-950",
+                  s.tone === "change" ? "bg-amber-400 shadow-[0_0_14px_-2px_rgba(245,158,11,0.8)]" : "bg-sky-400 shadow-[0_0_14px_-2px_rgba(56,189,248,0.8)]",
+                )}
+              >
+                {i + 1}
+              </span>
               <span className="min-w-0">
-                <s.icon className={cn("mb-1 h-4 w-4", s.tone === "change" ? "text-amber-300" : "text-sky-300")} />
-                <span className="block text-[12.5px] leading-snug text-mist">{s.text}</span>
+                <s.icon className={cn("mb-1.5 h-5 w-5", s.tone === "change" ? "text-amber-300" : "text-sky-300")} />
+                <span className="block text-[14.5px] leading-snug text-mist">{s.text}</span>
               </span>
             </button>
-            <ArrowRight className="h-4 w-4 self-center text-sky-500/70" aria-hidden />
+            <ArrowRight className="h-5 w-5 shrink-0 self-center text-sky-400/80" aria-hidden />
           </li>
         ))}
         <li
           className={cn(
-            "flex w-[230px] items-center gap-2.5 rounded-xl border-2 p-3",
-            impacted ? "border-red-500/70 bg-red-500/10" : "border-emerald-500/60 bg-emerald-500/10",
+            "flex min-w-[240px] flex-[1.15] items-center gap-3.5 rounded-2xl border-[1.5px] p-4",
+            impacted
+              ? "border-red-400/80 bg-gradient-to-br from-red-500/[0.2] to-red-500/[0.05] shadow-[0_0_28px_-10px_rgba(239,68,68,0.8)]"
+              : "border-emerald-400/70 bg-gradient-to-br from-emerald-500/[0.18] to-emerald-500/[0.04] shadow-[0_0_28px_-10px_rgba(52,211,153,0.8)]",
           )}
         >
-          {impacted ? <XCircle className="h-7 w-7 shrink-0 text-red-400" /> : <CheckCircle2 className="h-7 w-7 shrink-0 text-emerald-400" />}
-          <span className="text-[13px] font-semibold leading-snug text-snow">
+          {impacted ? <XCircle className="h-9 w-9 shrink-0 text-red-400" /> : <CheckCircle2 className="h-9 w-9 shrink-0 text-emerald-400" />}
+          <span className="text-[16.5px] font-semibold leading-snug text-snow">
             {impacted
               ? `${listRegions(verdict.violating_regions)} is not allowed → contract broken`
               : verdict.status === "NO_DEPENDENCY"
@@ -126,10 +135,10 @@ export function WhySteps({
       </ol>
 
       {open !== null && steps[open]?.quote && (
-        <figure className="mt-3 max-w-3xl rounded-lg border-l-2 border-sky-400/60 bg-ink-900/80 px-3 py-2">
-          <blockquote className="text-[13px] leading-relaxed text-snow">“{steps[open].quote}”</blockquote>
+        <figure className="mt-3 max-w-3xl rounded-xl border-l-2 border-sky-400/70 bg-ink-900/80 px-4 py-2.5">
+          <blockquote className="text-[14px] leading-relaxed text-snow">“{steps[open].quote}”</blockquote>
           {steps[open].src && (
-            <figcaption className="mt-1 flex items-center gap-2 text-[11px] text-fog">
+            <figcaption className="mt-1 flex items-center gap-2 text-[12px] text-fog">
               <span className="font-mono">
                 {steps[open].src}
                 {steps[open].line ? ` · line ${steps[open].line}` : ""}

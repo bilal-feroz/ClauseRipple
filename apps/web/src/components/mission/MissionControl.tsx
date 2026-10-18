@@ -14,6 +14,7 @@ import { cn, prefersReducedMotion } from "@/lib/utils";
 import { ChangeStory, type AppliedChange } from "@/components/story/ChangeStory";
 import { ImpactFlow } from "@/components/story/ImpactFlow";
 import { ImpactResult } from "@/components/story/ImpactResult";
+import { SpaceBackdrop } from "@/components/story/SpaceBackdrop";
 import { TOOL_PLAIN } from "@/components/story/plain";
 import { AgentTrace } from "./AgentTrace";
 import { BottomPanel, type BottomTab } from "./BottomPanel";
@@ -196,7 +197,7 @@ export function MissionControl() {
   const busy = running || apply.isPending || reset.isPending;
 
   return (
-    <div className="flex min-h-dvh flex-col lg:h-dvh">
+    <div className="flex min-h-dvh flex-col xl:h-dvh xl:min-h-[940px]">
       <TopBar
         health={health.data}
         healthError={health.isError}
@@ -218,7 +219,7 @@ export function MissionControl() {
         </div>
       )}
 
-      <main className="grid min-h-0 flex-1 gap-3 p-3 lg:grid-cols-[330px_minmax(0,1fr)_360px] lg:grid-rows-[minmax(0,1fr)_300px]">
+      <main className="grid min-h-0 flex-1 gap-4 p-4 lg:grid-cols-2 xl:grid-cols-[310px_minmax(0,1fr)_330px] xl:grid-rows-[minmax(0,1fr)_310px] 2xl:grid-cols-[360px_minmax(0,1fr)_360px]">
         <aside className="flex min-h-0 flex-col gap-2" aria-label="What changed">
           <ChangeStory
             pending={pending.data?.[0]}
@@ -239,15 +240,18 @@ export function MissionControl() {
           )}
         </aside>
 
-        <section className="panel relative flex min-h-[60vh] flex-col overflow-hidden lg:min-h-0" aria-label="How the change spreads">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-line px-4 pt-2">
-            <h2 className="pb-1.5 text-[15px] font-semibold text-snow">How the change spreads</h2>
-            <div role="tablist" className="flex items-center gap-1">
+        <section
+          className="panel relative flex min-h-[560px] flex-col overflow-hidden lg:order-3 lg:col-span-2 xl:order-none xl:col-span-1 xl:min-h-0"
+          aria-label="How the change spreads"
+        >
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-b border-line px-5 pt-3">
+            <h2 className="pb-3 text-[19px] font-semibold tracking-tight text-snow">How the change spreads</h2>
+            <div role="tablist" className="flex items-center gap-1 self-end">
               {(
                 [
-                  ["flow", "Map", <Waypoints key="f" className="h-3.5 w-3.5" />],
-                  ["ripple", "3D view", <Boxes key="r" className="h-3.5 w-3.5" />],
-                  ["evidence", "Evidence graph", <Network key="e" className="h-3.5 w-3.5" />],
+                  ["flow", "Map", <Waypoints key="f" className="h-4 w-4" />],
+                  ["ripple", "3D view", <Boxes key="r" className="h-4 w-4" />],
+                  ["evidence", "Evidence graph", <Network key="e" className="h-4 w-4" />],
                 ] as const
               ).map(([key, label, icon]) => (
                 <button
@@ -257,8 +261,10 @@ export function MissionControl() {
                   aria-selected={centerTab === key}
                   onClick={() => setCenterTab(key)}
                   className={cn(
-                    "flex items-center gap-1.5 rounded-t-md border-b-2 px-2.5 py-1.5 text-[12.5px] transition",
-                    centerTab === key ? "border-signal text-snow" : "border-transparent text-fog hover:text-mist",
+                    "flex items-center gap-2 rounded-t-lg border-b-2 px-3 py-2.5 text-[14px] transition",
+                    centerTab === key
+                      ? "border-sky-400 bg-gradient-to-t from-sky-400/15 to-transparent font-semibold text-snow"
+                      : "border-transparent text-mist hover:text-snow",
                   )}
                 >
                   {icon}
@@ -266,16 +272,17 @@ export function MissionControl() {
                 </button>
               ))}
             </div>
-            <div className="ml-auto flex items-center gap-3 pb-1.5 text-[11px] text-fog">
-              <Legend color="bg-amber-400" label="changed" />
-              <Legend color="bg-orange-400" label="being checked" />
-              <Legend color="bg-red-500" label="broken" />
-              <Legend color="bg-emerald-500" label="fine" />
+            <div className="ml-auto flex items-center gap-3 pb-3 text-[12px] text-mist">
+              <Legend color="bg-amber-400 text-amber-400" label="changed" />
+              <Legend color="bg-orange-400 text-orange-400" label="checking" />
+              <Legend color="bg-red-500 text-red-500" label="broken" />
+              <Legend color="bg-emerald-400 text-emerald-400" label="fine" />
             </div>
           </div>
-          <div className="grid-backdrop relative min-h-0 flex-1">
+          <div className={cn("relative min-h-0 flex-1", centerTab !== "flow" && "grid-backdrop")}>
             {centerTab === "flow" && (
               <>
+                <SpaceBackdrop />
                 <ImpactFlow
                   impact={impact.data}
                   graph={graph.data}
@@ -285,7 +292,7 @@ export function MissionControl() {
                   onSelectCustomer={selectCustomer}
                 />
                 {caption && (
-                  <div className="pointer-events-none absolute bottom-3 left-1/2 max-w-[90%] -translate-x-1/2 rounded-full border border-change/40 bg-ink-900/90 px-4 py-1.5 text-[12px] text-snow shadow-lg">
+                  <div className="pointer-events-none absolute bottom-4 left-1/2 max-w-[90%] -translate-x-1/2 rounded-full border border-amber-400/50 bg-ink-900/90 px-4 py-2 text-[13px] text-snow shadow-[0_0_24px_-6px_rgba(245,158,11,0.6)] backdrop-blur">
                     <span className="mr-2 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-change align-middle" />
                     {caption}
                   </div>
@@ -317,7 +324,7 @@ export function MissionControl() {
           </div>
         </section>
 
-        <aside className="flex min-h-[420px] flex-col lg:min-h-0" aria-label="Who is affected">
+        <aside className="flex min-h-[420px] flex-col xl:min-h-0" aria-label="Who is affected">
           <ImpactResult
             impact={impact.data}
             graph={graph.data}
@@ -330,7 +337,7 @@ export function MissionControl() {
           />
         </aside>
 
-        <div className="min-h-[320px] lg:col-span-3 lg:min-h-0">
+        <div className="min-h-[320px] lg:order-4 lg:col-span-2 xl:order-none xl:col-span-3 xl:min-h-0">
           <BottomPanel
             tab={bottomTab}
             setTab={setBottomTab}
@@ -378,7 +385,7 @@ export function MissionControl() {
 function Legend({ color, label }: { color: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5">
-      <span className={cn("h-2 w-2 rounded-full", color)} />
+      <span className={cn("h-2.5 w-2.5 rounded-full shadow-[0_0_8px_currentColor]", color)} />
       {label}
     </span>
   );

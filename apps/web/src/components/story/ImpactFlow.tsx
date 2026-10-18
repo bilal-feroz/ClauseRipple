@@ -8,6 +8,7 @@ import {
   ReactFlow,
   useNodesInitialized,
   useReactFlow,
+  useStore,
   type Edge,
   type Node,
   type NodeProps,
@@ -22,17 +23,48 @@ import { plainVerdict } from "./plain";
 
 type Tone = "neutral" | "change" | "flow" | "impact" | "safe" | "muted";
 
-const TONE: Record<Tone, { border: string; glow: string; icon: string; title: string }> = {
-  neutral: { border: "border-slate-600/60", glow: "", icon: "text-sky-300", title: "text-snow" },
-  change: { border: "border-amber-400", glow: "shadow-[0_0_28px_-6px_rgba(245,158,11,0.75)]", icon: "text-amber-300", title: "text-snow" },
-  flow: { border: "border-orange-400/80", glow: "shadow-[0_0_22px_-8px_rgba(251,146,60,0.7)]", icon: "text-orange-300", title: "text-snow" },
-  impact: { border: "border-red-500", glow: "shadow-[0_0_30px_-6px_rgba(239,68,68,0.8)]", icon: "text-red-400", title: "text-snow" },
-  safe: { border: "border-emerald-500/80", glow: "shadow-[0_0_24px_-8px_rgba(34,197,94,0.6)]", icon: "text-emerald-400", title: "text-snow" },
-  muted: { border: "border-dashed border-slate-600/60", glow: "", icon: "text-slate-500", title: "text-mist" },
+// Neon card styles: coloured border, outer glow, soft inner glow and a status dot.
+const TONE: Record<Tone, { border: string; glow: string; icon: string; title: string; dot: string }> = {
+  neutral: {
+    border: "border-cyan-400/80",
+    glow: "shadow-[0_0_18px_-3px_rgba(34,211,238,0.6),inset_0_0_16px_-6px_rgba(34,211,238,0.45)]",
+    icon: "text-cyan-300",
+    title: "text-snow",
+    dot: "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]",
+  },
+  change: {
+    border: "border-amber-400",
+    glow: "shadow-[0_0_24px_-3px_rgba(245,158,11,0.75),inset_0_0_16px_-6px_rgba(245,158,11,0.5)]",
+    icon: "text-amber-300",
+    title: "text-snow",
+    dot: "bg-amber-300 shadow-[0_0_8px_rgba(252,211,77,0.9)]",
+  },
+  flow: {
+    border: "border-orange-400",
+    glow: "shadow-[0_0_22px_-4px_rgba(251,146,60,0.7),inset_0_0_16px_-6px_rgba(251,146,60,0.45)]",
+    icon: "text-orange-300",
+    title: "text-snow",
+    dot: "animate-pulse bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.9)]",
+  },
+  impact: {
+    border: "border-red-500",
+    glow: "shadow-[0_0_26px_-3px_rgba(239,68,68,0.8),inset_0_0_16px_-6px_rgba(239,68,68,0.5)]",
+    icon: "text-red-400",
+    title: "text-snow",
+    dot: "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.95)]",
+  },
+  safe: {
+    border: "border-emerald-400",
+    glow: "shadow-[0_0_22px_-4px_rgba(52,211,153,0.65),inset_0_0_16px_-6px_rgba(52,211,153,0.4)]",
+    icon: "text-emerald-300",
+    title: "text-snow",
+    dot: "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]",
+  },
+  muted: { border: "border-dashed border-slate-400/40", glow: "", icon: "text-slate-400", title: "text-mist", dot: "" },
 };
 
 const EDGE_COLOR: Record<Tone, string> = {
-  neutral: "#475569",
+  neutral: "#38bdf8",
   change: "#f59e0b",
   flow: "#fb923c",
   impact: "#ef4444",
@@ -49,18 +81,19 @@ function Card({ data }: NodeProps<Node<CardData>>) {
   return (
     <div
       className={cn(
-        "flex h-full w-full items-center gap-3 rounded-xl border-2 bg-ink-850/95 px-3 py-2 transition-[border-color,box-shadow] duration-500",
+        "relative flex h-full w-full items-center gap-3 rounded-xl border-[1.5px] bg-[#081530]/85 px-3.5 py-2 backdrop-blur-[2px] transition-[border-color,box-shadow] duration-500",
         t.border,
         t.glow,
         data.clickable && "cursor-pointer hover:brightness-125",
       )}
     >
+      {t.dot && <span aria-hidden className={cn("absolute right-2.5 top-2.5 h-2 w-2 rounded-full transition-colors duration-500", t.dot)} />}
       <Handle id="l" type="target" position={Position.Left} className="!h-1 !w-1 !border-0 !bg-transparent" />
       <Handle id="t" type="target" position={Position.Top} className="!h-1 !w-1 !border-0 !bg-transparent" />
       <Icon className={cn("h-6 w-6 shrink-0 transition-colors duration-500", t.icon)} />
-      <div className="min-w-0">
-        <div className={cn("truncate text-[15px] font-semibold leading-tight", t.title)}>{data.title}</div>
-        {data.sub && <div className="mt-0.5 line-clamp-2 text-[12.5px] leading-snug text-mist">{data.sub}</div>}
+      <div className="min-w-0 pr-3">
+        <div className={cn("truncate text-[16px] font-semibold leading-tight", t.title)}>{data.title}</div>
+        {data.sub && <div className="mt-1 line-clamp-2 text-[13px] leading-snug text-mist">{data.sub}</div>}
       </div>
       <Handle id="r" type="source" position={Position.Right} className="!h-1 !w-1 !border-0 !bg-transparent" />
       <Handle id="b" type="source" position={Position.Bottom} className="!h-1 !w-1 !border-0 !bg-transparent" />
@@ -69,22 +102,28 @@ function Card({ data }: NodeProps<Node<CardData>>) {
 }
 
 function Header({ data }: NodeProps<Node<HeaderData>>) {
-  return <div className="w-full text-center text-[12px] font-semibold uppercase tracking-[0.16em] text-slate-400">{data.text}</div>;
+  return (
+    <div className="w-full text-center text-[13.5px] font-semibold uppercase tracking-[0.18em] text-sky-300 [text-shadow:0_0_12px_rgba(56,189,248,0.6)]">
+      {data.text}
+    </div>
+  );
 }
 
 const nodeTypes = { card: Card, header: Header };
-const CARD_W = 244;
+const CARD_W = 214;
 const CARD_H = 74;
 
-/** Re-fit the view whenever the diagram's content changes (new region, statuses), without remounting. */
+/** Re-fit the view whenever the diagram's content or the panel size changes, without remounting. */
 function AutoFit({ signature }: { signature: string }) {
   const { fitView } = useReactFlow();
   const ready = useNodesInitialized();
+  const width = useStore((st) => st.width);
+  const height = useStore((st) => st.height);
   useEffect(() => {
     if (!ready) return;
-    const id = requestAnimationFrame(() => void fitView({ padding: 0.1, duration: 400 }));
+    const id = requestAnimationFrame(() => void fitView({ padding: 0.05, duration: 400 }));
     return () => cancelAnimationFrame(id);
-  }, [signature, ready, fitView]);
+  }, [signature, ready, fitView, width, height]);
   return null;
 }
 
@@ -138,7 +177,7 @@ export function ImpactFlow({
       edges={edges}
       nodeTypes={nodeTypes}
       fitView
-      fitViewOptions={{ padding: 0.12 }}
+      fitViewOptions={{ padding: 0.05 }}
       minZoom={0.3}
       maxZoom={1.4}
       proOptions={{ hideAttribution: true }}
@@ -153,7 +192,7 @@ export function ImpactFlow({
         if (n.id.startsWith("customer:")) onSelectCustomer(n.id);
       }}
     >
-      <Background color="#1b2430" gap={26} />
+      <Background color="rgba(148, 197, 255, 0.12)" gap={28} size={1} />
       <AutoFit signature={key} />
     </ReactFlow>
   );
@@ -170,7 +209,7 @@ function build(
   const edges: Edge[] = [];
   if (!impact || !graph) return { nodes, edges, key: "empty" };
   const byId = new Map(graph.nodes.map((n) => [n.id, n]));
-  const X = { vendor: 0, system: 280, product: 560, customer: 840 };
+  const X = { vendor: 0, system: 252, product: 504, customer: 756 };
   const ROW = 104;
 
   // Group customers that share a product so their branches never cross or overlap.
@@ -217,7 +256,7 @@ function build(
   const regionsVisible = updated && newRegions.length > 0 && vendorTone === "change";
 
   const header = (id: string, x: number, text: string) =>
-    nodes.push({ id, type: "header", position: { x, y: -70 }, width: CARD_W, height: 20, data: { text }, selectable: false });
+    nodes.push({ id, type: "header", position: { x, y: -52 }, width: CARD_W, height: 20, data: { text }, selectable: false });
   header("h-vendor", X.vendor, "Supplier");
   header("h-system", X.system, "Our system");
   header("h-product", X.product, "Our product");
@@ -226,8 +265,8 @@ function build(
   nodes.push({
     id: impact.vendor_id,
     type: "card",
-      width: CARD_W,
-      height: CARD_H,
+    width: CARD_W,
+    height: CARD_H,
     position: { x: X.vendor, y: vendorY },
     data: {
       icon: Cloud,
@@ -243,8 +282,8 @@ function build(
       nodes.push({
         id,
         type: "card",
-      width: CARD_W,
-      height: CARD_H,
+        width: CARD_W,
+        height: CARD_H,
         position: { x: X.vendor, y: vendorY + 150 + i * ROW },
         data: { icon: MapPin, title: r.code === "US" ? "United States" : r.name, sub: "Newly allowed for data", tone: "change" },
       });
@@ -305,7 +344,7 @@ function build(
       type: "card",
       width: CARD_W,
       height: CARD_H,
-      position: { x: X.customer, y: connected.length * ROW + 40 + i * ROW },
+      position: { x: X.customer, y: connected.length * ROW + 16 + i * ROW },
       data: {
         icon: SEGMENT_ICON[byId.get(v.customer_id)?.segment ?? ""] ?? Building2,
         title: v.customer_name,
@@ -330,7 +369,7 @@ function edge(id: string, source: string, target: string, tone: Tone, animated: 
     animated,
     sourceHandle: vertical ? "b" : "r",
     targetHandle: vertical ? "t" : "l",
-    style: { stroke: color, strokeWidth: tone === "neutral" ? 1.5 : 2.5, transition: "stroke 0.5s" },
+    style: { stroke: color, strokeWidth: tone === "neutral" ? 2 : 2.5, filter: `drop-shadow(0 0 4px ${color})`, transition: "stroke 0.5s" },
     markerEnd: { type: MarkerType.ArrowClosed, color, width: 16, height: 16 },
   };
 }

@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ink-950: #05070a;
-  --color-ink-900: #080b10;
-  --color-ink-850: #0b0f15;
-  --color-ink-800: #0f141b;
-  --color-ink-700: #151c25;
-  --color-ink-600: #1e2733;
-  --color-ink-500: #2a3544;
-  --color-line: #1b2430;
-  --color-line-strong: #283445;
-  --color-fog: #8b98aa;
-  --color-mist: #b9c4d2;
-  --color-snow: #e6edf5;
+  --color-ink-950: #040914;
+  --color-ink-900: #060d1a;
+  --color-ink-850: #091224;
+  --color-ink-800: #0c172b;
+  --color-ink-700: #112036;
+  --color-ink-600: #182a45;
+  --color-ink-500: #233a5c;
+  --color-line: #13243b;
+  --color-line-strong: #1d3454;
+  --color-fog: #8d9db4;
+  --color-mist: #bfcbdb;
+  --color-snow: #eaf2fb;
   --color-signal: #38bdf8;
   --color-change: #f59e0b;
   --color-impact: #ef4444;
@@ -33,13 +33,20 @@ body {
 }
 
 body {
+  background:
+    radial-gradient(1100px 520px at 0% -10%, rgba(34, 211, 238, 0.07), transparent 60%),
+    radial-gradient(900px 600px at 100% 0%, rgba(59, 130, 246, 0.07), transparent 60%),
+    var(--color-ink-950);
+}
+
+body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #283445 transparent;
+  scrollbar-color: #1d3454 transparent;
 }
 
 :focus-visible {
@@ -49,9 +56,37 @@ body {
 }
 
 .panel {
-  background: linear-gradient(180deg, rgba(15, 20, 27, 0.92), rgba(11, 15, 21, 0.92));
-  border: 1px solid var(--color-line);
-  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(10, 22, 40, 0.9), rgba(6, 14, 28, 0.94));
+  border: 1px solid rgba(56, 189, 248, 0.16);
+  border-radius: 16px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    inset 0 0 48px -24px rgba(56, 189, 248, 0.22);
+}
+
+/* Deep-space backdrop behind the impact map: nebula clouds over a navy base. */
+.space-backdrop {
+  background:
+    radial-gradient(ellipse 42% 38% at 68% 28%, rgba(79, 70, 229, 0.3), transparent 70%),
+    radial-gradient(ellipse 34% 30% at 88% 78%, rgba(168, 85, 247, 0.22), transparent 70%),
+    radial-gradient(ellipse 40% 32% at 18% 82%, rgba(14, 165, 233, 0.22), transparent 70%),
+    radial-gradient(ellipse 26% 22% at 42% 58%, rgba(236, 72, 153, 0.1), transparent 70%),
+    radial-gradient(ellipse 30% 26% at 12% 18%, rgba(56, 189, 248, 0.12), transparent 70%),
+    linear-gradient(180deg, #071330, #050b1c);
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.twinkle {
+  animation: twinkle 3.6s ease-in-out infinite;
 }
 
 .eyebrow {
@@ -103,7 +138,8 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .step-in,
-  .pulse-impact {
+  .pulse-impact,
+  .twinkle {
     animation: none;
   }
 }
@@ -111,12 +147,12 @@ body {
 /* React Flow dark theming */
 .react-flow {
   --xy-background-color: transparent;
-  --xy-edge-stroke: #334155;
-  --xy-edge-label-background-color: #0b0f15;
+  --xy-edge-stroke: #38bdf8;
+  --xy-edge-label-background-color: #091224;
   --xy-edge-label-color: #b9c4d2;
-  --xy-controls-button-background-color: #0f141b;
-  --xy-controls-button-background-color-hover: #151c25;
-  --xy-controls-button-color: #b9c4d2;
-  --xy-controls-button-border-color: #1b2430;
+  --xy-controls-button-background-color: #0c172b;
+  --xy-controls-button-background-color-hover: #112036;
+  --xy-controls-button-color: #bfcbdb;
+  --xy-controls-button-border-color: #13243b;
   --xy-attribution-background-color: transparent;
 }

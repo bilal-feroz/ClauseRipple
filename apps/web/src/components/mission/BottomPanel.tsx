@@ -47,15 +47,15 @@ export function BottomPanel({
 }) {
   const [doc, setDoc] = useState<{ id: string; highlight?: string | null } | null>(null);
   const tabs: [BottomTab, string, React.ReactNode][] = [
-    ["why", verdict ? `Why · ${verdict.customer_name}` : "Why", <Network key="w" className="h-3.5 w-3.5" />],
-    ["cases", `Cases & next steps${cases.length ? ` (${cases.length})` : ""}`, <ShieldAlert key="c" className="h-3.5 w-3.5" />],
-    ["agent", "Agent steps", <Bot key="a" className="h-3.5 w-3.5" />],
-    ["memory", "Company memory", <Brain key="m" className="h-3.5 w-3.5" />],
-    ["sources", `Sources (${documents.length})`, <BookOpen key="s" className="h-3.5 w-3.5" />],
+    ["why", verdict ? `Why · ${verdict.customer_name}` : "Why", <Network key="w" className="h-4 w-4" />],
+    ["cases", `Cases & next steps${cases.length ? ` (${cases.length})` : ""}`, <ShieldAlert key="c" className="h-4 w-4" />],
+    ["agent", "Agent steps", <Bot key="a" className="h-4 w-4" />],
+    ["memory", "Company memory", <Brain key="m" className="h-4 w-4" />],
+    ["sources", `Sources (${documents.length})`, <BookOpen key="s" className="h-4 w-4" />],
   ];
   return (
     <section className="panel flex h-full min-h-0 flex-col" aria-label="Evidence, decisions, cases and sources">
-      <div role="tablist" className="flex gap-1 border-b border-line px-2 pt-1.5">
+      <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-line px-3 pt-2">
         {tabs.map(([key, label, icon]) => (
           <button
             key={key}
@@ -64,8 +64,10 @@ export function BottomPanel({
             aria-selected={tab === key}
             onClick={() => setTab(key)}
             className={cn(
-              "flex items-center gap-1.5 rounded-t-md border-b-2 px-2.5 py-1.5 text-[12px] transition",
-              tab === key ? "border-signal text-snow" : "border-transparent text-fog hover:text-mist",
+              "flex shrink-0 items-center gap-2 rounded-t-lg border-b-2 px-3.5 py-2.5 text-[14px] transition",
+              tab === key
+                ? "border-sky-400 bg-gradient-to-t from-sky-400/15 to-transparent font-semibold text-snow [&>svg]:text-sky-300"
+                : "border-transparent text-mist hover:text-snow",
             )}
           >
             {icon}
@@ -73,7 +75,7 @@ export function BottomPanel({
           </button>
         ))}
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
         {tab === "cases" && (
           <CasesTab
             cases={cases}
@@ -309,8 +311,8 @@ function WhyTab({
       {!verdict.affected && evidence.vendor_regions.some((r) => r.change_id) && (
         <GuardrailProbe customerId={verdict.customer_id} customerName={verdict.customer_name} />
       )}
-      <details className="rounded-lg border border-line bg-ink-900/30 p-3">
-        <summary className="cursor-pointer text-[12px] text-fog hover:text-mist">Technical detail: graph paths and every source quote</summary>
+      <details className="rounded-xl border border-line-strong bg-ink-900/40 px-4 py-3">
+        <summary className="cursor-pointer text-[14px] text-mist hover:text-snow">Technical detail: graph paths and every source quote</summary>
     <div className="mt-3 space-y-3">
       <div className="flex flex-wrap items-center gap-2">
         <h3 className="text-[14px] font-semibold text-snow">{title}</h3>
