@@ -1,6 +1,6 @@
 # ClauseRipple benchmark — vector-only RAG vs FalkorDB graph
 
-Generated 2026-10-15T18:06:13+00:00 by `uv run python -m app.eval.benchmark` · FalkorDB 4.22.1 · embeddings BAAI/bge-small-en-v1.5.
+Generated 2026-10-18T17:01:35+00:00 by `uv run python -m app.eval.benchmark` · FalkorDB 4.22.1 · embeddings BAAI/bge-small-en-v1.5.
 All numbers below are measured by that script; see `data/evaluation/results.json` for every row.
 
 ## Evidence coverage (does the retrieved context contain every source the answer needs?)
@@ -29,10 +29,10 @@ All numbers below are measured by that script; see `data/evaluation/results.json
 
 ## Latency (local Docker FalkorDB, laptop)
 
-- Core multi-hop blast-radius query: median **0.996 ms** FalkorDB execution, 4.67 ms wall (30 runs).
-- Full deterministic residency evaluation of all customers: median 19.08 ms wall (10 runs).
-- Incremental DPA v1→v2 update (diff, fact delta, graph writes, ChangeEvent): median 202.0 ms (5 runs).
-- Full agent run (playbook planner, tools via MCP): 14 tools, 63 graph reads, 13 writes, 102.48 ms FalkorDB time, 584.7 ms tool time.
+- Core multi-hop blast-radius query: median **0.856 ms** FalkorDB execution, 4.22 ms wall (30 runs).
+- Full deterministic residency evaluation of all customers: median 14.57 ms wall (10 runs).
+- Incremental DPA v1→v2 update (diff, fact delta, graph writes, ChangeEvent): median 177.6 ms (5 runs).
+- Full agent run (playbook planner, tools via MCP): 14 tools, 63 graph reads, 13 writes, 74.65 ms FalkorDB time, 402.6 ms tool time.
 
 ## Method & caveats
 
