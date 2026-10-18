@@ -12,6 +12,7 @@ last time, opens an impact case, assigns it to the right person, and shows the s
 
 ![ClauseRipple after the agent run: two customers in breach, cases assigned to owners](docs/demo/screenshots/04-run-completed.png)
 
+- **Live demo:** https://clause-ripple.vercel.app (free hosting; the first load can take about a minute while the API wakes up)
 - Built for **Graph Hacks: Context for AI Agents** (FalkorDB x WeMakeDevs)
 - Tracks: **Track 01: Agents That Act on Connected Data** and **Track 03: Company Brain**
 - All demo data is synthetic. No real company data is used.

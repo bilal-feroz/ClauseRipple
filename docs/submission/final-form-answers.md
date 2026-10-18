@@ -29,8 +29,9 @@ ADD YOUR YOUTUBE LINK HERE (not recorded yet when this file was written)
 
 ## Live demo
 
-No hosted deployment. Full local setup (Docker + Python + Node, no API key needed) is in the README:
-https://github.com/bilal-feroz/ClauseRipple#local-setup
+https://clause-ripple.vercel.app
+
+(Web on Vercel; API + FalkorDB on a free Render instance at https://clauseripple-api.onrender.com. The free instance sleeps when idle, so the first load can take about a minute. Full local setup is in the README.)
 
 ## How did you use FalkorDB?
 
