@@ -49,7 +49,7 @@ export function AskBar() {
           e.preventDefault();
           submit(q);
         }}
-        className="flex items-center gap-2.5 rounded-xl border border-line-strong bg-ink-850/80 px-3.5 py-2.5 focus-within:border-signal/60"
+        className="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 backdrop-blur transition focus-within:border-sky-300/50 focus-within:bg-sky-400/[0.06] focus-within:shadow-[0_0_28px_-10px_rgba(56,189,248,0.9)]"
         role="search"
       >
         <Search className="h-4 w-4 shrink-0 text-mist" />
@@ -71,14 +71,14 @@ export function AskBar() {
       </form>
 
       {focused && !q && !open && (
-        <div className="absolute left-0 right-0 top-full z-40 mt-1 rounded-lg border border-line-strong bg-ink-850 p-1.5 shadow-2xl">
+        <div className="step-in absolute left-0 right-0 top-full z-40 mt-1.5 rounded-2xl border border-white/10 bg-[#0a1124]/95 p-1.5 shadow-2xl backdrop-blur-xl">
           {EXAMPLES.map((ex) => (
             <button
               key={ex}
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => submit(ex)}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12px] text-mist hover:bg-ink-700 hover:text-snow"
+              className="flex w-full items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-[12.5px] text-mist transition hover:bg-sky-400/10 hover:text-snow"
             >
               <ArrowRight className="h-3 w-3 text-fog" />
               {ex}
@@ -91,7 +91,7 @@ export function AskBar() {
         <div
           role="dialog"
           aria-label="Answer from the company graph"
-          className="absolute left-0 top-full z-40 mt-1 max-h-[70vh] w-[min(720px,92vw)] overflow-y-auto rounded-lg border border-line-strong bg-ink-850 p-3 shadow-2xl"
+          className="step-in absolute left-0 top-full z-40 mt-1.5 max-h-[70vh] w-[min(720px,92vw)] overflow-y-auto rounded-2xl border border-white/10 bg-[#0a1124]/95 p-4 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)] backdrop-blur-xl"
         >
           <div className="mb-2 flex items-start gap-2">
             <div className="min-w-0 flex-1">
@@ -123,7 +123,7 @@ export function AskBar() {
                     {r.path.map((p, i) => (
                       <span key={`${p}-${i}`} className="flex items-center gap-1">
                         {i > 0 && <ArrowRight className="h-3 w-3 text-fog" />}
-                        <span className="rounded border border-line bg-ink-900 px-1.5 py-0.5 text-[11px] text-mist">{p}</span>
+                        <span className="rounded-lg border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[11px] text-mist">{p}</span>
                       </span>
                     ))}
                   </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, CheckCircle2, Cog, FileSignature, FileText, MapPin, Unlink, Users, XCircle, type LucideIcon } from "lucide-react";
+import { CheckCircle2, Cog, FileSignature, FileText, MapPin, Unlink, Users, XCircle, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import type { EvidenceBundle, Verdict } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -8,7 +8,7 @@ import { listRegions } from "./plain";
 
 type Step = { icon: LucideIcon; text: React.ReactNode; quote?: string | null; src?: string | null; line?: number | null; tone?: "change" };
 
-/** The reasoning chain as numbered plain-language steps, each backed by a verbatim source quote. */
+/** The reasoning chain as a compact row of plain-language steps, each backed by a verbatim source quote. */
 export function WhySteps({
   verdict,
   evidence,
@@ -69,60 +69,61 @@ export function WhySteps({
   const changed = evidence.vendor_regions.some((r) => r.change_id);
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1">
-        <h3 className="text-[20px] font-semibold tracking-tight text-snow">
+      <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <h3 className="text-[16px] font-semibold tracking-tight text-snow">
           Why {verdict.customer_name} is {impacted ? "impacted" : "not affected"}
         </h3>
         <span
           className={cn(
-            "rounded-lg border px-2.5 py-1 text-[12.5px] font-bold uppercase tracking-wide",
-            impacted ? "border-red-400/80 bg-red-500/20 text-red-200" : "border-emerald-400/70 bg-emerald-500/10 text-emerald-300",
+            "rounded-lg border px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide",
+            impacted ? "border-rose-300/80 bg-rose-500/20 text-rose-100" : "border-emerald-300/60 bg-emerald-400/10 text-emerald-200",
           )}
         >
           {impacted ? verdict.severity : "No impact"}
         </span>
-        <span className="text-[14px] text-mist">Click a step to see the exact sentence it comes from.</span>
+        <span className="text-[12px] text-fog">Tap a step to see the sentence it comes from.</span>
       </div>
 
-      <ol className="flex flex-wrap items-stretch gap-2 xl:flex-nowrap">
+      <ol className="flex items-stretch overflow-x-auto pb-1">
         {steps.map((s, i) => (
-          <li key={i} className="flex min-w-[200px] flex-1 items-stretch gap-2">
+          <li key={i} className="step-in flex min-w-[178px] flex-1 items-center" style={{ animationDelay: `${i * 70}ms` }}>
             <button
               type="button"
               onClick={() => setOpen(open === i ? null : i)}
               aria-expanded={open === i}
               className={cn(
-                "flex min-h-[100px] flex-1 items-start gap-3 rounded-2xl border bg-ink-900/60 p-3.5 text-left transition hover:border-sky-400/60",
-                s.tone === "change" ? "border-amber-400/60 bg-amber-500/[0.06]" : "border-line-strong",
-                open === i && "border-sky-400/80 shadow-[0_0_22px_-8px_rgba(56,189,248,0.8)]",
+                "flex h-full min-h-[72px] flex-1 items-start gap-2.5 rounded-xl border p-2.5 text-left transition hover:-translate-y-px hover:border-sky-300/50",
+                s.tone === "change" ? "border-amber-300/50 bg-amber-500/[0.07]" : "border-white/10 bg-white/[0.03]",
+                open === i && "border-sky-300/80 bg-sky-400/[0.07] shadow-[0_0_22px_-8px_rgba(56,189,248,0.9)]",
               )}
             >
               <span
                 className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[14px] font-bold text-ink-950",
-                  s.tone === "change" ? "bg-amber-400 shadow-[0_0_14px_-2px_rgba(245,158,11,0.8)]" : "bg-sky-400 shadow-[0_0_14px_-2px_rgba(56,189,248,0.8)]",
+                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11.5px] font-bold text-ink-950",
+                  s.tone === "change" ? "bg-amber-300 shadow-[0_0_12px_-2px_rgba(245,158,11,0.9)]" : "bg-sky-300 shadow-[0_0_12px_-2px_rgba(56,189,248,0.9)]",
                 )}
               >
                 {i + 1}
               </span>
               <span className="min-w-0">
-                <s.icon className={cn("mb-1.5 h-5 w-5", s.tone === "change" ? "text-amber-300" : "text-sky-300")} />
-                <span className="block text-[14.5px] leading-snug text-mist">{s.text}</span>
+                <s.icon className={cn("mb-1 h-4 w-4", s.tone === "change" ? "text-amber-300" : "text-sky-300")} />
+                <span className="block text-[12.5px] leading-snug text-mist">{s.text}</span>
               </span>
             </button>
-            <ArrowRight className="h-5 w-5 shrink-0 self-center text-sky-400/80" aria-hidden />
+            <span aria-hidden className={cn("connector mx-1.5 w-5 shrink-0", s.tone === "change" ? "text-amber-300/70" : "text-sky-300/60")} />
           </li>
         ))}
         <li
           className={cn(
-            "flex min-w-[240px] flex-[1.15] items-center gap-3.5 rounded-2xl border-[1.5px] p-4",
+            "step-in flex min-w-[220px] flex-[1.15] items-center gap-3 rounded-xl border-[1.5px] p-3",
             impacted
-              ? "border-red-400/80 bg-gradient-to-br from-red-500/[0.2] to-red-500/[0.05] shadow-[0_0_28px_-10px_rgba(239,68,68,0.8)]"
-              : "border-emerald-400/70 bg-gradient-to-br from-emerald-500/[0.18] to-emerald-500/[0.04] shadow-[0_0_28px_-10px_rgba(52,211,153,0.8)]",
+              ? "alarm border-rose-300/80 bg-gradient-to-br from-rose-500/[0.22] to-red-500/[0.05]"
+              : "border-emerald-300/60 bg-gradient-to-br from-emerald-400/[0.16] to-emerald-500/[0.03] shadow-[0_0_28px_-12px_rgba(52,211,153,0.9)]",
           )}
+          style={{ animationDelay: `${steps.length * 70}ms` }}
         >
-          {impacted ? <XCircle className="h-9 w-9 shrink-0 text-red-400" /> : <CheckCircle2 className="h-9 w-9 shrink-0 text-emerald-400" />}
-          <span className="text-[16.5px] font-semibold leading-snug text-snow">
+          {impacted ? <XCircle className="h-8 w-8 shrink-0 text-rose-300" /> : <CheckCircle2 className="h-8 w-8 shrink-0 text-emerald-300" />}
+          <span className="text-[14.5px] font-semibold leading-snug text-snow">
             {impacted
               ? `${listRegions(verdict.violating_regions)} is not allowed → contract broken`
               : verdict.status === "NO_DEPENDENCY"
@@ -135,8 +136,8 @@ export function WhySteps({
       </ol>
 
       {open !== null && steps[open]?.quote && (
-        <figure className="mt-3 max-w-3xl rounded-xl border-l-2 border-sky-400/70 bg-ink-900/80 px-4 py-2.5">
-          <blockquote className="text-[14px] leading-relaxed text-snow">“{steps[open].quote}”</blockquote>
+        <figure className="step-in mt-3 max-w-3xl rounded-xl border-l-2 border-sky-300/80 bg-black/30 px-4 py-2.5">
+          <blockquote className="text-[13.5px] leading-relaxed text-snow">“{steps[open].quote}”</blockquote>
           {steps[open].src && (
             <figcaption className="mt-1 flex items-center gap-2 text-[12px] text-fog">
               <span className="font-mono">

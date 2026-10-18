@@ -55,7 +55,7 @@ export function BottomPanel({
   ];
   return (
     <section className="panel flex h-full min-h-0 flex-col" aria-label="Evidence, decisions, cases and sources">
-      <div role="tablist" className="flex gap-1 overflow-x-auto border-b border-line px-3 pt-2">
+      <div role="tablist" className="flex items-center gap-1 overflow-x-auto px-3 pt-3">
         {tabs.map(([key, label, icon]) => (
           <button
             key={key}
@@ -64,10 +64,10 @@ export function BottomPanel({
             aria-selected={tab === key}
             onClick={() => setTab(key)}
             className={cn(
-              "flex shrink-0 items-center gap-2 rounded-t-lg border-b-2 px-3.5 py-2.5 text-[14px] transition",
+              "flex shrink-0 items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] transition-all duration-300",
               tab === key
-                ? "border-sky-400 bg-gradient-to-t from-sky-400/15 to-transparent font-semibold text-snow [&>svg]:text-sky-300"
-                : "border-transparent text-mist hover:text-snow",
+                ? "bg-white/[0.08] font-semibold text-snow ring-1 ring-sky-300/35 shadow-[0_0_18px_-8px_rgba(56,189,248,0.9)] [&>svg]:text-sky-300"
+                : "text-mist hover:bg-white/5 hover:text-snow",
             )}
           >
             {icon}
@@ -75,7 +75,7 @@ export function BottomPanel({
           </button>
         ))}
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-3 pt-3">
         {tab === "cases" && (
           <CasesTab
             cases={cases}
@@ -138,8 +138,8 @@ function CasesTab({
               onClick={() => onSelectCase(c.id)}
               aria-pressed={active === c.id}
               className={cn(
-                "w-full rounded-md border px-2.5 py-2 text-left transition",
-                active === c.id ? "border-impact/60 bg-impact/5" : "border-line bg-ink-900/50 hover:border-line-strong",
+                "w-full rounded-xl border px-3 py-2 text-left transition",
+                active === c.id ? "border-rose-300/60 bg-rose-500/[0.08] shadow-[0_0_20px_-10px_rgba(244,63,94,0.9)]" : "border-white/10 bg-white/[0.03] hover:border-white/20",
               )}
             >
               <div className="flex items-center gap-2">
@@ -184,7 +184,7 @@ function CaseView({
   const c = data.case;
   const approved = c.status === "REMEDIATION_APPROVED" || data.resolved_by.length > 0;
   return (
-    <article className="rounded-lg border border-line bg-ink-900/50 p-3" aria-label={`Impact case ${c.ref}`}>
+    <article className="step-in rounded-2xl border border-white/10 bg-white/[0.03] p-3.5" aria-label={`Impact case ${c.ref}`}>
       <header className="mb-2 flex flex-wrap items-center gap-2">
         <span className="font-mono text-[15px] font-semibold text-red-200">{c.ref}</span>
         <span className="text-[13px] font-semibold text-snow">{c.title}</span>
@@ -202,13 +202,13 @@ function CaseView({
         <Field k="Owner" v={data.assignee ?? c.suggested_owner} icon={<UserCheck className="h-3 w-3 text-signal" />} />
         <Field k="Team" v={data.team ?? c.suggested_team} />
       </dl>
-      <div className="mb-2.5 rounded-md border border-signal/30 bg-signal/5 p-2">
+      <div className="mb-2.5 rounded-xl border border-sky-300/25 bg-sky-400/[0.06] p-2.5">
         <div className="eyebrow mb-0.5 !text-sky-300/90">Recommended remediation</div>
         <p className="text-[12px] text-snow">{c.recommended_action}</p>
         {c.agent_note && <p className="mt-1 text-[11px] italic text-mist">Agent note: {c.agent_note}</p>}
       </div>
       {data.related_decisions.length > 0 && (
-        <div className="mb-2.5 rounded-md border border-memory/40 bg-memory/5 p-2">
+        <div className="mb-2.5 rounded-xl border border-violet-300/30 bg-violet-500/[0.07] p-2.5">
           <div className="eyebrow mb-0.5 flex items-center gap-1 !text-purple-300">
             <Brain className="h-3 w-3" /> Related memory found
           </div>
@@ -223,7 +223,7 @@ function CaseView({
         <div className="eyebrow mb-1">Actions (owners resolved from graph relationships)</div>
         <ul className="space-y-1">
           {data.actions.map((a) => (
-            <li key={a.id} className="flex flex-wrap items-center gap-2 rounded-md border border-line bg-ink-950/50 px-2 py-1 text-[11.5px]">
+            <li key={a.id} className="flex flex-wrap items-center gap-2 rounded-lg border border-white/[0.08] bg-black/25 px-2 py-1 text-[11.5px]">
               <Badge tone={a.kind === "REMEDIATE" ? "impact" : a.kind === "REVIEW" ? "signal" : "change"}>{a.kind}</Badge>
               <span className="min-w-0 flex-1 text-snow">{a.title}</span>
               <span className="text-fog">→ {a.owner}</span>
@@ -311,7 +311,7 @@ function WhyTab({
       {!verdict.affected && evidence.vendor_regions.some((r) => r.change_id) && (
         <GuardrailProbe customerId={verdict.customer_id} customerName={verdict.customer_name} />
       )}
-      <details className="rounded-xl border border-line-strong bg-ink-900/40 px-4 py-3">
+      <details className="rounded-xl border border-white/10 bg-white/[0.02] px-4 py-2.5">
         <summary className="cursor-pointer text-[14px] text-mist hover:text-snow">Technical detail: graph paths and every source quote</summary>
     <div className="mt-3 space-y-3">
       <div className="flex flex-wrap items-center gap-2">
@@ -374,7 +374,7 @@ function WhyTab({
 function GuardrailProbe({ customerId, customerName }: { customerId: string; customerName: string }) {
   const probe = useMutation({ mutationFn: () => api.requestCase(customerId) });
   return (
-    <div className="rounded-lg border border-dashed border-line-strong p-2.5">
+    <div className="rounded-xl border border-dashed border-white/15 p-2.5">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[11.5px] text-mist">Safety check: try to make the agent open a case for {customerName} anyway — the graph should refuse.</span>
         <Button onClick={() => probe.mutate()} disabled={probe.isPending}>
@@ -407,7 +407,7 @@ function PathBlock({
   tail?: string;
 }) {
   return (
-    <div className="rounded-lg border border-line bg-ink-900/50 p-2.5">
+    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-2.5">
       <div className="eyebrow mb-1.5">{title}</div>
       {!nodes?.length ? (
         <p className="text-[11.5px] text-green-300">{empty}</p>
@@ -446,7 +446,7 @@ function MemoryTab({ decisions, runs }: { decisions: Decision[]; runs: AgentRunS
         <div className="eyebrow mb-1.5">Decisions in FalkorDB</div>
         <ul className="space-y-1.5">
           {decisions.map((d) => (
-            <li key={d.decision_id} className="rounded-md border border-line bg-ink-900/50 px-2.5 py-1.5">
+            <li key={d.decision_id} className="rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-1.5">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-mono text-[12px] font-semibold text-purple-200">{d.ref}</span>
                 <span className="text-[12px] text-snow">{d.title.replace(`${d.ref} — `, "")}</span>
@@ -469,7 +469,7 @@ function MemoryTab({ decisions, runs }: { decisions: Decision[]; runs: AgentRunS
         <div className="eyebrow mb-1.5">Agent runs (operational memory)</div>
         <ul className="space-y-1.5">
           {runs.map((r) => (
-            <li key={r.id} className="rounded-md border border-line bg-ink-900/50 px-2.5 py-1.5 text-[11.5px]">
+            <li key={r.id} className="rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[11.5px]">
               <div className="flex items-center gap-2">
                 <span className="font-mono font-semibold text-sky-200">{r.ref}</span>
                 <span className="text-fog">{r.change_ref}</span>
@@ -502,7 +502,7 @@ function SourcesTab({ documents, openDoc }: { documents: SourceDocument[]; openD
           key={d.doc_id}
           type="button"
           onClick={() => openDoc(d.doc_id)}
-          className="rounded-md border border-line bg-ink-900/50 px-2.5 py-1.5 text-left hover:border-line-strong"
+          className="rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-left hover:border-white/20"
         >
           <div className="flex items-center gap-1.5">
             <FileText className="h-3.5 w-3.5 text-fog" />

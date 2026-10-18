@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { Component, useEffect, useState, type ReactNode } from "react";
-import { Crosshair, Expand, Focus, RotateCcw } from "lucide-react";
+import { Crosshair, Expand, Focus, Pause, Play, RotateCcw, Shapes } from "lucide-react";
 import { LABEL_STYLE, STATUS_COLOR } from "@/lib/graph-style";
 import { cn } from "@/lib/utils";
 import type { CameraCommand, RippleSceneProps } from "./RippleScene";
@@ -13,7 +13,12 @@ const RippleScene = dynamic(() => import("./RippleScene"), {
 });
 
 function SceneMessage({ children }: { children: ReactNode }) {
-  return <div className="flex h-full items-center justify-center text-sm text-fog">{children}</div>;
+  return (
+    <div className="flex h-full items-center justify-center gap-2 text-sm text-fog">
+      <span className="h-2 w-2 animate-pulse rounded-full bg-sky-400" />
+      {children}
+    </div>
+  );
 }
 
 function detectWebGL(): boolean {
@@ -35,18 +40,18 @@ class SceneBoundary extends Component<{ fallback: ReactNode; children: ReactNode
   }
 }
 
-type Props = Omit<RippleSceneProps, "cameraCommand" | "onContextLost" | "affectedOnly"> & {
+type Props = Omit<RippleSceneProps, "cameraCommand" | "onContextLost" | "affectedOnly" | "autoRotate"> & {
   fallback: ReactNode;
   focusTarget: string | null;
-  caption: string | null;
 };
 
 export function RippleSpace(props: Props) {
-  const { fallback, focusTarget, caption, ...scene } = props;
+  const { fallback, focusTarget, ...scene } = props;
   const [webgl, setWebgl] = useState<boolean | null>(null);
   const [lost, setLost] = useState(false);
   const [command, setCommand] = useState<CameraCommand | null>(null);
   const [affectedOnly, setAffectedOnly] = useState(false);
+  const [autoRotate, setAutoRotate] = useState(true);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -56,41 +61,47 @@ export function RippleSpace(props: Props) {
   const cmd = (kind: CameraCommand["kind"], target?: string | null) =>
     setCommand({ kind, target, nonce: (command?.nonce ?? 0) + 1 });
 
-  if (webgl === null) return <SceneMessage>Checking WebGL…</SceneMessage>;
-  if (!webgl || lost) {
-    return (
-      <div className="flex h-full flex-col">
-        <div role="status" className="border-b border-line bg-ink-850 px-4 py-2 text-xs text-mist">
-          3D RippleSpace unavailable on this device. Using evidence graph.
-        </div>
-        <div className="min-h-0 flex-1">{fallback}</div>
+  const unavailable = (
+    <div className="flex h-full flex-col">
+      <div role="status" className="border-b border-line bg-ink-850/80 px-4 py-2 text-xs text-mist">
+        3D RippleSpace unavailable on this device. Using evidence graph.
       </div>
-    );
-  }
+      <div className="min-h-0 flex-1">{fallback}</div>
+    </div>
+  );
 
+  if (webgl === null) return <SceneMessage>Checking WebGL…</SceneMessage>;
+  if (!webgl || lost) return unavailable;
+
+  const hot = [...scene.statuses.values()].filter((s) => s === "impacted").length;
   return (
     <div className="relative h-full w-full" aria-label="RippleSpace: 3D view of the live FalkorDB company graph">
-      <SceneBoundary
-        fallback={
-          <div className="flex h-full flex-col">
-            <div role="status" className="border-b border-line bg-ink-850 px-4 py-2 text-xs text-mist">
-              3D RippleSpace unavailable on this device. Using evidence graph.
-            </div>
-            <div className="min-h-0 flex-1">{fallback}</div>
-          </div>
-        }
-      >
-        <RippleScene {...scene} affectedOnly={affectedOnly} cameraCommand={command} onContextLost={() => setLost(true)} />
+      <SceneBoundary fallback={unavailable}>
+        <RippleScene
+          {...scene}
+          affectedOnly={affectedOnly}
+          autoRotate={autoRotate}
+          cameraCommand={command}
+          onContextLost={() => setLost(true)}
+        />
       </SceneBoundary>
 
-      {caption && (
-        <div className="pointer-events-none absolute left-3 top-3 max-w-[60%] rounded-md border border-change/40 bg-ink-900/85 px-2.5 py-1.5 text-[11px] text-snow shadow-lg">
-          <span className="mr-1.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-change align-middle" />
-          {caption}
-        </div>
-      )}
+      <div className="pointer-events-none absolute left-4 top-3 flex items-center gap-2 rounded-full border border-white/10 bg-black/35 px-3 py-1 text-[11px] text-mist backdrop-blur-md">
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="ping-soft absolute inset-0 rounded-full bg-sky-400" />
+          <span className="relative h-1.5 w-1.5 rounded-full bg-sky-400" />
+        </span>
+        <span className="font-semibold uppercase tracking-[0.16em] text-sky-200">RippleSpace</span>
+        <span className="tabular-nums">
+          {scene.graph.nodes.length} nodes · {scene.graph.edges.length} links
+        </span>
+        {hot > 0 && <span className="font-semibold text-rose-300">· {hot} in breach</span>}
+      </div>
 
-      <div className="absolute right-3 top-3 flex gap-1.5">
+      <div className="absolute right-4 top-3 flex gap-1.5">
+        <SceneButton label={autoRotate ? "Pause orbit" : "Orbit"} active={autoRotate} onClick={() => setAutoRotate((v) => !v)}>
+          {autoRotate ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+        </SceneButton>
         <SceneButton label="Reset view" onClick={() => cmd("reset")}>
           <RotateCcw className="h-3.5 w-3.5" />
         </SceneButton>
@@ -129,8 +140,8 @@ function SceneButton({
       aria-label={label}
       aria-pressed={active}
       className={cn(
-        "flex h-7 items-center gap-1 rounded-md border border-line bg-ink-900/85 px-2 text-[11px] text-mist transition hover:border-line-strong hover:text-snow",
-        active && "border-signal/60 text-snow",
+        "flex h-8 w-8 items-center justify-center rounded-full border border-white/10 bg-black/35 text-mist backdrop-blur-md transition hover:border-sky-300/50 hover:text-snow",
+        active && "border-sky-300/50 bg-sky-400/15 text-sky-100 shadow-[0_0_16px_-4px_rgba(56,189,248,0.8)]",
       )}
     >
       {children}
@@ -139,37 +150,40 @@ function SceneButton({
 }
 
 function Legend() {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   const shapes = ["Customer", "Product", "System", "Vendor", "DataRegion", "Contract", "Obligation", "Team", "Person", "Decision", "ImpactCase", "AgentRun"];
   const statuses: [string, string][] = [
-    ["changed", "Changed fact"],
+    ["changed", "Changed"],
     ["impacted", "Impacted"],
-    ["safe", "Not impacted"],
+    ["safe", "Safe"],
     ["owner", "Owner"],
     ["memory", "Memory"],
   ];
   return (
-    <div className="absolute bottom-3 left-3 hidden max-w-[420px] rounded-lg border border-line bg-ink-900/85 text-[10px] text-fog backdrop-blur md:block">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        className="flex w-full items-center gap-3 px-2 py-1 text-left"
-      >
-        <span className="eyebrow !text-[9.5px]">Legend</span>
-        <span className="flex flex-wrap gap-x-2.5 gap-y-0.5">
-          {statuses.map(([k, label]) => (
-            <span key={k} className="flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full" style={{ background: STATUS_COLOR[k as keyof typeof STATUS_COLOR] }} />
-              {label}
-            </span>
-          ))}
-        </span>
-      </button>
+    <div className="absolute bottom-3 left-4 hidden max-w-[460px] rounded-2xl border border-white/10 bg-black/40 text-[10.5px] text-mist backdrop-blur-md md:block">
+      <div className="flex items-center gap-3 px-3 py-1.5">
+        {statuses.map(([k, label]) => (
+          <span key={k} className="flex items-center gap-1.5">
+            <span
+              className="h-2 w-2 rounded-full"
+              style={{ background: STATUS_COLOR[k as keyof typeof STATUS_COLOR], boxShadow: `0 0 8px ${STATUS_COLOR[k as keyof typeof STATUS_COLOR]}` }}
+            />
+            {label}
+          </span>
+        ))}
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="ml-1 flex items-center gap-1 rounded-full border border-white/10 px-2 py-0.5 text-[10px] text-fog transition hover:text-snow"
+        >
+          <Shapes className="h-3 w-3" /> Shapes
+        </button>
+      </div>
       {open && (
-        <div className="grid grid-cols-4 gap-x-2.5 gap-y-0.5 border-t border-line px-2 py-1.5">
+        <div className="grid grid-cols-4 gap-x-3 gap-y-1 border-t border-white/10 px-3 py-2">
           {shapes.map((s) => (
-            <span key={s} className="flex items-center gap-1">
+            <span key={s} className="flex items-center gap-1.5">
               <ShapeGlyph label={s} />
               {LABEL_STYLE[s].title}
             </span>

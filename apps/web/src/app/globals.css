@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ink-950: #040914;
+  --color-ink-950: #02040b;
   --color-ink-900: #060d1a;
   --color-ink-850: #091224;
   --color-ink-800: #0c172b;
@@ -33,13 +33,6 @@ body {
 }
 
 body {
-  background:
-    radial-gradient(1100px 520px at 0% -10%, rgba(34, 211, 238, 0.07), transparent 60%),
-    radial-gradient(900px 600px at 100% 0%, rgba(59, 130, 246, 0.07), transparent 60%),
-    var(--color-ink-950);
-}
-
-body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
@@ -55,43 +48,39 @@ body {
   border-radius: 4px;
 }
 
+/* ── Surfaces ───────────────────────────────────────────────────────────────── */
+
+/* Frosted glass over the living cosmos: the background keeps moving behind every panel. */
 .panel {
-  background: linear-gradient(180deg, rgba(10, 22, 40, 0.9), rgba(6, 14, 28, 0.94));
-  border: 1px solid rgba(56, 189, 248, 0.16);
-  border-radius: 16px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.03),
-    inset 0 0 48px -24px rgba(56, 189, 248, 0.22);
-}
-
-/* Deep-space backdrop behind the impact map: nebula clouds over a navy base. */
-.space-backdrop {
+  position: relative;
   background:
-    radial-gradient(ellipse 42% 38% at 68% 28%, rgba(79, 70, 229, 0.3), transparent 70%),
-    radial-gradient(ellipse 34% 30% at 88% 78%, rgba(168, 85, 247, 0.22), transparent 70%),
-    radial-gradient(ellipse 40% 32% at 18% 82%, rgba(14, 165, 233, 0.22), transparent 70%),
-    radial-gradient(ellipse 26% 22% at 42% 58%, rgba(236, 72, 153, 0.1), transparent 70%),
-    radial-gradient(ellipse 30% 26% at 12% 18%, rgba(56, 189, 248, 0.12), transparent 70%),
-    linear-gradient(180deg, #071330, #050b1c);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), transparent 140px),
+    linear-gradient(180deg, rgba(12, 21, 43, 0.66), rgba(5, 10, 24, 0.78));
+  border: 1px solid rgba(148, 190, 255, 0.1);
+  border-radius: 20px;
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 30px 60px -36px rgba(0, 0, 0, 0.9);
 }
 
-@keyframes twinkle {
-  0%,
-  100% {
-    opacity: 0.95;
-  }
-  50% {
-    opacity: 0.35;
-  }
-}
-
-.twinkle {
-  animation: twinkle 3.6s ease-in-out infinite;
+/* The hero stage: an open window onto the cosmos, framed rather than boxed. */
+.stage {
+  position: relative;
+  border-radius: 24px;
+  border: 1px solid rgba(148, 190, 255, 0.09);
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 45%, rgba(56, 120, 255, 0.1), transparent 70%),
+    linear-gradient(180deg, rgba(6, 12, 30, 0.35), rgba(3, 7, 18, 0.55));
+  box-shadow:
+    inset 0 0 80px -30px rgba(56, 189, 248, 0.25),
+    0 30px 80px -40px rgba(0, 0, 0, 0.9);
 }
 
 .eyebrow {
   font-size: 10.5px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--color-fog);
   font-weight: 600;
@@ -108,10 +97,115 @@ body {
     32px 32px;
 }
 
+.text-glow-cyan {
+  text-shadow: 0 0 18px rgba(56, 189, 248, 0.55);
+}
+
+/* ── Living cosmos (fixed, behind everything) ───────────────────────────────── */
+
+.cosmos {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -10%, #0c1838 0%, #060c20 45%, #02040b 100%);
+}
+
+.nebula {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  mix-blend-mode: screen;
+  will-change: transform;
+  animation: drift 42s ease-in-out infinite alternate;
+}
+
+.star-layer {
+  position: absolute;
+  inset: -60px;
+  will-change: transform;
+  animation: star-drift 140s linear infinite alternate;
+}
+
+.shooting-star {
+  position: absolute;
+  height: 1.5px;
+  width: 180px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(186, 230, 253, 0.95));
+  filter: drop-shadow(0 0 6px rgba(125, 211, 252, 0.9));
+  opacity: 0;
+  transform-origin: right center;
+  animation: shoot 11s ease-in infinite;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 85% 75% at 50% 45%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+@keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, -3%, 0) scale(1.12);
+  }
+  100% {
+    transform: translate3d(-3%, 4%, 0) scale(0.94);
+  }
+}
+
+@keyframes star-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-40px, -30px, 0);
+  }
+}
+
+@keyframes shoot {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(var(--angle, 24deg)) scaleX(0.3);
+  }
+  2% {
+    opacity: 1;
+  }
+  9% {
+    opacity: 0;
+    transform: translate3d(var(--travel-x, 520px), var(--travel-y, 230px), 0) rotate(var(--angle, 24deg)) scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--travel-x, 520px), var(--travel-y, 230px), 0) rotate(var(--angle, 24deg)) scaleX(1);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.95;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.twinkle {
+  animation: twinkle 3.6s ease-in-out infinite;
+}
+
+/* ── Motion vocabulary ──────────────────────────────────────────────────────── */
+
 @keyframes step-in {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;
@@ -120,39 +214,329 @@ body {
 }
 
 .step-in {
-  animation: step-in 0.28s ease-out both;
+  animation: step-in 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-@keyframes pulse-ring {
+@keyframes pop-in {
   0% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.45);
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.04);
   }
   100% {
-    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
-.pulse-impact {
-  animation: pulse-ring 1.6s ease-out 2;
+.pop-in {
+  animation: pop-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* soft radar ping behind a status dot */
+@keyframes ping-soft {
+  0% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  80%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.ping-soft {
+  animation: ping-soft 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* red alarm glow for anything in breach */
+@keyframes alarm {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(244, 63, 94, 0.55),
+      0 0 26px -6px rgba(244, 63, 94, 0.75);
+  }
+  50% {
+    box-shadow:
+      0 0 0 6px rgba(244, 63, 94, 0),
+      0 0 38px -4px rgba(244, 63, 94, 0.95);
+  }
+}
+
+.alarm {
+  animation: alarm 1.8s ease-in-out infinite;
+}
+
+@keyframes alarm-amber {
+  0%,
+  100% {
+    box-shadow: 0 0 14px -4px rgba(245, 158, 11, 0.8);
+  }
+  50% {
+    box-shadow: 0 0 26px -2px rgba(245, 158, 11, 1);
+  }
+}
+
+.alarm-amber {
+  animation: alarm-amber 1.8s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 22px -8px rgba(56, 189, 248, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 34px -6px rgba(56, 189, 248, 0.75);
+  }
+}
+
+.breathe {
+  animation: breathe 3.2s ease-in-out infinite;
+}
+
+/* a light beam sweeping across a card while it is being checked */
+@keyframes scan {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+
+.scan-beam {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.scan-beam::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 45%;
+  background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.28), transparent);
+  animation: scan 1.6s ease-in-out infinite;
+}
+
+/* moving sheen on the primary call to action */
+@keyframes sheen {
+  0% {
+    transform: translateX(-130%) skewX(-18deg);
+  }
+  55%,
+  100% {
+    transform: translateX(260%) skewX(-18deg);
+  }
+}
+
+.sheen {
+  position: relative;
+  overflow: hidden;
+}
+
+.sheen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+  animation: sheen 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes cta-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 28px -6px rgba(245, 158, 11, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 46px -4px rgba(245, 158, 11, 0.95),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+}
+
+.cta-glow {
+  animation: cta-glow 2.6s ease-in-out infinite;
+}
+
+/* conic "energy" border that orbits a card (used while the agent works) */
+@property --orbit {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@keyframes orbit {
+  to {
+    --orbit: 360deg;
+  }
+}
+
+.orbit-border {
+  position: relative;
+  isolation: isolate;
+}
+
+.orbit-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(from var(--orbit), transparent 0deg, var(--orbit-color, #f59e0b) 70deg, transparent 140deg, transparent 360deg);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: orbit 2.4s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* marching dashes for SVG strokes */
+@keyframes dash-flow {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+
+.dash-flow {
+  stroke-dasharray: 7 5;
+  animation: dash-flow 0.9s linear infinite;
+}
+
+/* flowing connector between reasoning steps */
+@keyframes connector-flow {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 24px 0;
+  }
+}
+
+.connector {
+  height: 2px;
+  background-image: linear-gradient(90deg, currentColor 50%, transparent 50%);
+  background-size: 12px 2px;
+  animation: connector-flow 0.8s linear infinite;
+}
+
+@keyframes progress-sheen {
+  from {
+    background-position: 0% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+.progress-live {
+  background-image: linear-gradient(90deg, #f59e0b, #fde68a, #f59e0b, #fb923c, #f59e0b);
+  background-size: 200% 100%;
+  animation: progress-sheen 1.4s linear infinite;
+}
+
+/* logo ripple arcs */
+@keyframes arc-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+.logo-arc {
+  animation: arc-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+@keyframes caption-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+.caption-in {
+  animation: caption-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .step-in,
-  .pulse-impact,
+  .pop-in,
+  .ping-soft,
+  .alarm,
+  .alarm-amber,
+  .breathe,
+  .scan-beam::after,
+  .sheen::after,
+  .cta-glow,
+  .orbit-border::before,
+  .dash-flow,
+  .connector,
+  .progress-live,
+  .logo-arc,
+  .spin-slow,
+  .caption-in,
+  .nebula,
+  .star-layer,
+  .shooting-star,
   .twinkle {
-    animation: none;
+    animation: none !important;
+  }
+  .shooting-star {
+    display: none;
   }
 }
 
-/* React Flow dark theming */
+/* ── React Flow dark theming ────────────────────────────────────────────────── */
 .react-flow {
   --xy-background-color: transparent;
   --xy-edge-stroke: #38bdf8;
   --xy-edge-label-background-color: #091224;
   --xy-edge-label-color: #b9c4d2;
-  --xy-controls-button-background-color: #0c172b;
+  --xy-controls-button-background-color: rgba(12, 23, 43, 0.85);
   --xy-controls-button-background-color-hover: #112036;
   --xy-controls-button-color: #bfcbdb;
-  --xy-controls-button-border-color: #13243b;
+  --xy-controls-button-border-color: #1d3454;
   --xy-attribution-background-color: transparent;
+}
+
+.react-flow__controls {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.8);
 }

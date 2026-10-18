@@ -21,7 +21,7 @@ export function AgentTrace({
   const planner = run.planner ?? history[0]?.planner ?? null;
   const isLlm = planner?.startsWith("llm:");
   return (
-    <section className="panel flex h-full min-h-0 flex-1 flex-col p-3" aria-labelledby="agent-title" aria-live="polite">
+    <section className="flex h-full min-h-0 flex-1 flex-col" aria-labelledby="agent-title" aria-live="polite">
       <SectionTitle
         right={
           <div className="flex items-center gap-1">
@@ -62,18 +62,18 @@ export function AgentTrace({
       {run.phase === "idle" ? (
         <IdleState history={history} onReplay={onReplay} />
       ) : (
-        <ol className="-mr-1 min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-1">
+        <ol className="-mr-1 grid min-h-0 flex-1 auto-rows-min content-start gap-1.5 overflow-y-auto pr-1 md:grid-cols-2 2xl:grid-cols-3">
           {run.steps.map((s) => (
             <Step key={s.step} s={s} onFocusEntities={onFocusEntities} />
           ))}
           {run.pendingTool && (
-            <li className="flex items-center gap-2 rounded-md border border-dashed border-line-strong px-2 py-1.5 text-[11.5px] text-fog">
+            <li className="orbit-border flex items-center gap-2 rounded-xl border border-amber-300/20 bg-amber-500/[0.05] px-2.5 py-2 text-[11.5px] text-amber-100">
               <Loader2 className="h-3.5 w-3.5 animate-spin text-change" />
               <span className="font-mono">{run.pendingTool.tool}()</span>
             </li>
           )}
           {run.error && (
-            <li className="rounded-md border border-impact/50 bg-impact/10 p-2 text-[11.5px] text-red-200">{run.error}</li>
+            <li className="rounded-xl border border-impact/50 bg-impact/10 p-2 text-[11.5px] text-red-200 md:col-span-2 2xl:col-span-3">{run.error}</li>
           )}
           {run.completed && <RunSummary run={run} />}
         </ol>
@@ -87,7 +87,7 @@ function Step({ s, onFocusEntities }: { s: ToolCompletedEvent; onFocusEntities: 
   const ok = s.status === "ok";
   const writes = (s.metrics?.graph_writes ?? 0) > 0;
   return (
-    <li className="step-in rounded-md border border-line bg-ink-900/60">
+    <li className="step-in rounded-xl border border-white/10 bg-white/[0.03] transition hover:border-white/20">
       <button
         type="button"
         onClick={() => {
@@ -173,13 +173,13 @@ function RunSummary({ run }: { run: AgentRunState }) {
     ["wall clock", fmtMs(c.duration_ms)],
   ];
   return (
-    <li className="step-in rounded-md border border-safe/30 bg-safe/5 p-2">
+    <li className="step-in rounded-xl border border-emerald-300/25 bg-emerald-400/[0.06] p-2.5 md:col-span-2 2xl:col-span-3">
       <div className="eyebrow mb-1 !text-green-300/90">Run {c.ref ?? ""} · {c.status.toLowerCase()}</div>
       <p className="mb-2 text-[11.5px] leading-snug text-snow">{c.summary}</p>
       {c.llm_summary && <p className="mb-2 text-[11px] italic leading-snug text-mist">Planner: {c.llm_summary}</p>}
-      <div className="grid grid-cols-3 gap-1">
+      <div className="grid grid-cols-3 gap-1.5 lg:grid-cols-6">
         {stats.map(([k, v]) => (
-          <div key={k} className="rounded border border-line bg-ink-900/70 px-1.5 py-1">
+          <div key={k} className="rounded-lg border border-white/10 bg-black/25 px-2 py-1">
             <div className="font-mono text-[12px] font-semibold text-snow tabular-nums">{v}</div>
             <div className="text-[9.5px] text-fog">{k}</div>
           </div>
@@ -209,7 +209,7 @@ function IdleState({ history, onReplay }: { history: AgentRunSummary[]; onReplay
                 <button
                   type="button"
                   onClick={() => onReplay(r.id)}
-                  className="flex w-full items-center gap-2 rounded-md border border-line bg-ink-900/60 px-2 py-1.5 text-left hover:border-line-strong"
+                  className="flex w-full items-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-left transition hover:border-sky-300/40"
                 >
                   <PlayCircle className="h-3.5 w-3.5 text-signal" />
                   <span className="font-mono text-[11px] text-snow">{r.ref}</span>

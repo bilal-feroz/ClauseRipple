@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Boxes, Network, Waypoints } from "lucide-react";
+import { Boxes, Network, Sparkles, Waypoints } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EvidenceGraph, WholeGraph2D } from "@/components/graph/EvidenceGraph";
 import { RippleSpace } from "@/components/graph/RippleSpace";
@@ -12,9 +12,9 @@ import { restingStatuses, revealsFromSteps } from "@/lib/status";
 import type { GNode } from "@/lib/types";
 import { cn, prefersReducedMotion } from "@/lib/utils";
 import { ChangeStory, type AppliedChange } from "@/components/story/ChangeStory";
+import { Cosmos } from "@/components/story/Cosmos";
 import { ImpactFlow } from "@/components/story/ImpactFlow";
 import { ImpactResult } from "@/components/story/ImpactResult";
-import { SpaceBackdrop } from "@/components/story/SpaceBackdrop";
 import { TOOL_PLAIN } from "@/components/story/plain";
 import { AgentTrace } from "./AgentTrace";
 import { BottomPanel, type BottomTab } from "./BottomPanel";
@@ -24,7 +24,20 @@ const VENDOR = "vendor:modelcloud";
 
 export function MissionControl() {
   const qc = useQueryClient();
-  const health = useQuery({ queryKey: ["health"], queryFn: api.health, refetchInterval: 5000 });
+  const health = useQuery({
+    queryKey: ["health"],
+    queryFn: async () => {
+      const t0 = performance.now();
+      const h = await api.health();
+      // network round trip from Resource Timing, so a busy main thread doesn't inflate it
+      const entries = performance.getEntriesByType("resource").filter((e) => e.name.endsWith("/health"));
+      const last = entries[entries.length - 1] as PerformanceResourceTiming | undefined;
+      const latencyMs = last && last.responseEnd > 0 ? last.responseEnd - (last.requestStart || last.startTime) : performance.now() - t0;
+      if (entries.length > 50) performance.clearResourceTimings();
+      return { ...h, latencyMs };
+    },
+    refetchInterval: 5000,
+  });
   const graphUp = health.data?.falkordb === "connected" && !health.isError;
   const state = useQuery({ queryKey: ["state"], queryFn: api.state, enabled: graphUp });
   const pending = useQuery({ queryKey: ["pending"], queryFn: api.pending, enabled: graphUp });
@@ -192,15 +205,17 @@ export function MissionControl() {
     if (n.label === "ImpactCase") openCase(n.id);
   };
 
-  const caption = running && lastStep ? `${TOOL_PLAIN[lastStep.tool] ?? lastStep.tool} — ${lastStep.summary ?? ""}` : null;
+  const captionStep = running ? lastStep : undefined;
   const checking = updated && running && !evaluated;
   const busy = running || apply.isPending || reset.isPending;
 
   return (
-    <div className="flex min-h-dvh flex-col xl:h-dvh xl:min-h-[940px]">
+    <div className="relative flex min-h-dvh flex-col xl:h-dvh xl:min-h-[760px]">
+      <Cosmos />
       <TopBar
         health={health.data}
         healthError={health.isError}
+        latencyMs={health.data?.latencyMs}
         state={state.data}
         onReset={() => reset.mutate()}
         resetting={reset.isPending}
@@ -208,18 +223,18 @@ export function MissionControl() {
       />
 
       {(!graphUp && !health.isLoading) && (
-        <div role="alert" className="border-b border-impact/40 bg-impact/10 px-4 py-2 text-[12.5px] text-red-100">
+        <div role="alert" className="relative z-20 mx-3 mb-2 rounded-xl border border-impact/40 bg-impact/10 px-4 py-2 text-[12.5px] text-red-100 backdrop-blur">
           {health.isError ? "ClauseRipple API unreachable." : "FalkorDB unavailable. Agent reasoning paused."} Start it with{" "}
           <code className="font-mono">docker compose up -d falkordb</code>.
         </div>
       )}
       {reset.data && !reset.data.validation.ok && (
-        <div role="alert" className="border-b border-change/40 bg-change/10 px-4 py-2 text-[12px] text-amber-100">
+        <div role="alert" className="relative z-20 mx-3 mb-2 rounded-xl border border-change/40 bg-change/10 px-4 py-2 text-[12px] text-amber-100 backdrop-blur">
           Graph validation failed ({reset.data.validation.passed}/{reset.data.validation.total}). Extraction missed critical facts — nothing was patched in.
         </div>
       )}
 
-      <main className="grid min-h-0 flex-1 gap-4 p-4 lg:grid-cols-2 xl:grid-cols-[310px_minmax(0,1fr)_330px] xl:grid-rows-[minmax(0,1fr)_310px] 2xl:grid-cols-[360px_minmax(0,1fr)_360px]">
+      <main className="relative z-10 grid min-h-0 flex-1 gap-3 px-3 pb-3 lg:grid-cols-2 xl:grid-cols-[300px_minmax(0,1fr)_320px] xl:grid-rows-[minmax(0,1fr)_clamp(188px,26vh,252px)] 2xl:grid-cols-[340px_minmax(0,1fr)_360px]">
         <aside className="flex min-h-0 flex-col gap-2" aria-label="What changed">
           <ChangeStory
             pending={pending.data?.[0]}
@@ -231,27 +246,32 @@ export function MissionControl() {
             onApply={() => apply.mutate()}
             applying={apply.isPending}
             disabled={!graphUp || busy}
+            watching={state.data?.stats?.documents}
             onShowAgent={() => setBottomTab("agent")}
           />
           {apply.error && (
-            <p role="alert" className="rounded-md border border-impact/40 bg-impact/10 p-2 text-[11.5px] text-red-200">
+            <p role="alert" className="rounded-xl border border-impact/40 bg-impact/10 p-2 text-[11.5px] text-red-200">
               {String(apply.error.message)}
             </p>
           )}
         </aside>
 
         <section
-          className="panel relative flex min-h-[560px] flex-col overflow-hidden lg:order-3 lg:col-span-2 xl:order-none xl:col-span-1 xl:min-h-0"
+          className={cn(
+            "stage flex min-h-[560px] flex-col overflow-hidden lg:order-3 lg:col-span-2 xl:order-none xl:col-span-1 xl:min-h-0",
+            running && "orbit-border",
+          )}
+          style={running ? ({ "--orbit-color": "#f59e0b" } as React.CSSProperties) : undefined}
           aria-label="How the change spreads"
         >
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-b border-line px-5 pt-3">
-            <h2 className="pb-3 text-[19px] font-semibold tracking-tight text-snow">How the change spreads</h2>
-            <div role="tablist" className="flex items-center gap-1 self-end">
+          <div className="relative z-10 flex flex-wrap items-center gap-x-4 gap-y-2 px-4 pt-3">
+            <h2 className="eyebrow !text-[11px] !text-sky-200/80">How the change spreads</h2>
+            <div role="tablist" className="flex items-center gap-1 rounded-full border border-white/10 bg-black/30 p-1 backdrop-blur-md">
               {(
                 [
-                  ["flow", "Map", <Waypoints key="f" className="h-4 w-4" />],
-                  ["ripple", "3D view", <Boxes key="r" className="h-4 w-4" />],
-                  ["evidence", "Evidence graph", <Network key="e" className="h-4 w-4" />],
+                  ["flow", "Map", <Waypoints key="f" className="h-3.5 w-3.5" />],
+                  ["ripple", "3D view", <Boxes key="r" className="h-3.5 w-3.5" />],
+                  ["evidence", "Evidence graph", <Network key="e" className="h-3.5 w-3.5" />],
                 ] as const
               ).map(([key, label, icon]) => (
                 <button
@@ -261,10 +281,10 @@ export function MissionControl() {
                   aria-selected={centerTab === key}
                   onClick={() => setCenterTab(key)}
                   className={cn(
-                    "flex items-center gap-2 rounded-t-lg border-b-2 px-3 py-2.5 text-[14px] transition",
+                    "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] transition-all duration-300",
                     centerTab === key
-                      ? "border-sky-400 bg-gradient-to-t from-sky-400/15 to-transparent font-semibold text-snow"
-                      : "border-transparent text-mist hover:text-snow",
+                      ? "bg-gradient-to-b from-sky-400/30 to-sky-500/10 font-semibold text-snow shadow-[0_0_20px_-6px_rgba(56,189,248,0.9)] ring-1 ring-sky-300/40"
+                      : "text-mist hover:bg-white/5 hover:text-snow",
                   )}
                 >
                   {icon}
@@ -272,32 +292,24 @@ export function MissionControl() {
                 </button>
               ))}
             </div>
-            <div className="ml-auto flex items-center gap-3 pb-3 text-[12px] text-mist">
+            <div className="ml-auto flex items-center gap-3 text-[11.5px] text-mist">
               <Legend color="bg-amber-400 text-amber-400" label="changed" />
               <Legend color="bg-orange-400 text-orange-400" label="checking" />
               <Legend color="bg-red-500 text-red-500" label="broken" />
               <Legend color="bg-emerald-400 text-emerald-400" label="fine" />
             </div>
           </div>
-          <div className={cn("relative min-h-0 flex-1", centerTab !== "flow" && "grid-backdrop")}>
+          <div className={cn("relative min-h-0 flex-1", centerTab === "evidence" && "grid-backdrop")}>
             {centerTab === "flow" && (
-              <>
-                <SpaceBackdrop />
-                <ImpactFlow
-                  impact={impact.data}
-                  graph={graph.data}
-                  statuses={statuses}
-                  updated={updated}
-                  showVerdicts={!running || evaluated}
-                  onSelectCustomer={selectCustomer}
-                />
-                {caption && (
-                  <div className="pointer-events-none absolute bottom-4 left-1/2 max-w-[90%] -translate-x-1/2 rounded-full border border-amber-400/50 bg-ink-900/90 px-4 py-2 text-[13px] text-snow shadow-[0_0_24px_-6px_rgba(245,158,11,0.6)] backdrop-blur">
-                    <span className="mr-2 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-change align-middle" />
-                    {caption}
-                  </div>
-                )}
-              </>
+              <ImpactFlow
+                impact={impact.data}
+                graph={graph.data}
+                statuses={statuses}
+                updated={updated}
+                showVerdicts={!running || evaluated}
+                reducedMotion={reducedMotion}
+                onSelectCustomer={selectCustomer}
+              />
             )}
             {centerTab === "ripple" &&
               (graph.data ? (
@@ -312,7 +324,6 @@ export function MissionControl() {
                   reducedMotion={reducedMotion}
                   onSelect={onSelectNode}
                   focusTarget={selectedNode ?? VENDOR}
-                  caption={caption}
                   fallback={<WholeGraph2D graph={graph.data} statuses={statuses} />}
                 />
               ) : (
@@ -320,6 +331,29 @@ export function MissionControl() {
               ))}
             {centerTab === "evidence" && (
               <EvidenceGraph bundle={evidence.data} verdict={verdict} vendorName={impact.data?.vendor_name ?? "ModelCloud"} />
+            )}
+
+            {captionStep && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-4 z-20 flex justify-center px-4">
+                <div
+                  key={captionStep.step}
+                  className="caption-in flex max-w-[640px] items-center gap-3 rounded-2xl border border-amber-300/30 bg-[#0a1022]/85 px-4 py-2.5 shadow-[0_0_44px_-12px_rgba(245,158,11,0.75)] backdrop-blur-md"
+                >
+                  <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-400/15 ring-1 ring-amber-300/50">
+                    <span className="ping-soft absolute inset-0 rounded-full bg-amber-400/30" />
+                    <Sparkles className="relative h-4 w-4 text-amber-200" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-300/90">
+                      Agent · step {captionStep.step}
+                    </span>
+                    <span className="block truncate text-[13.5px] text-snow">
+                      {TOOL_PLAIN[captionStep.tool] ?? captionStep.tool}
+                      {captionStep.summary ? <span className="text-mist"> — {captionStep.summary}</span> : null}
+                    </span>
+                  </span>
+                </div>
+              </div>
             )}
           </div>
         </section>
@@ -385,7 +419,7 @@ export function MissionControl() {
 function Legend({ color, label }: { color: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5">
-      <span className={cn("h-2.5 w-2.5 rounded-full shadow-[0_0_8px_currentColor]", color)} />
+      <span className={cn("h-2 w-2 rounded-full shadow-[0_0_8px_currentColor]", color)} />
       {label}
     </span>
   );

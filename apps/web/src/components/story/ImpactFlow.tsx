@@ -1,15 +1,16 @@
 "use client";
 
 import {
-  Background,
   Handle,
   MarkerType,
   Position,
   ReactFlow,
+  getBezierPath,
   useNodesInitialized,
   useReactFlow,
   useStore,
   type Edge,
+  type EdgeProps,
   type Node,
   type NodeProps,
 } from "@xyflow/react";
@@ -23,57 +24,70 @@ import { plainVerdict } from "./plain";
 
 type Tone = "neutral" | "change" | "flow" | "impact" | "safe" | "muted";
 
-// Neon card styles: coloured border, outer glow, soft inner glow and a status dot.
-const TONE: Record<Tone, { border: string; glow: string; icon: string; title: string; dot: string }> = {
+// Glass cards: the tone drives the border, the glow, the icon tile and the status dot.
+const TONE: Record<Tone, { border: string; glow: string; tile: string; icon: string; dot: string; ping: boolean }> = {
   neutral: {
-    border: "border-cyan-400/80",
-    glow: "shadow-[0_0_18px_-3px_rgba(34,211,238,0.6),inset_0_0_16px_-6px_rgba(34,211,238,0.45)]",
-    icon: "text-cyan-300",
-    title: "text-snow",
-    dot: "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]",
+    border: "border-sky-300/25",
+    glow: "shadow-[0_0_24px_-10px_rgba(56,189,248,0.55)]",
+    tile: "bg-gradient-to-br from-sky-400/25 to-cyan-500/5 ring-1 ring-sky-300/25",
+    icon: "text-sky-200",
+    dot: "bg-emerald-400",
+    ping: false,
   },
   change: {
-    border: "border-amber-400",
-    glow: "shadow-[0_0_24px_-3px_rgba(245,158,11,0.75),inset_0_0_16px_-6px_rgba(245,158,11,0.5)]",
-    icon: "text-amber-300",
-    title: "text-snow",
-    dot: "bg-amber-300 shadow-[0_0_8px_rgba(252,211,77,0.9)]",
+    border: "border-amber-300/80",
+    glow: "shadow-[0_0_34px_-6px_rgba(245,158,11,0.8)]",
+    tile: "bg-gradient-to-br from-amber-400/40 to-orange-500/10 ring-1 ring-amber-300/50",
+    icon: "text-amber-200",
+    dot: "bg-amber-300",
+    ping: true,
   },
   flow: {
-    border: "border-orange-400",
-    glow: "shadow-[0_0_22px_-4px_rgba(251,146,60,0.7),inset_0_0_16px_-6px_rgba(251,146,60,0.45)]",
-    icon: "text-orange-300",
-    title: "text-snow",
-    dot: "animate-pulse bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.9)]",
+    border: "border-orange-300/70",
+    glow: "shadow-[0_0_30px_-8px_rgba(251,146,60,0.75)]",
+    tile: "bg-gradient-to-br from-orange-400/35 to-amber-500/5 ring-1 ring-orange-300/40",
+    icon: "text-orange-200",
+    dot: "bg-orange-400",
+    ping: true,
   },
   impact: {
-    border: "border-red-500",
-    glow: "shadow-[0_0_26px_-3px_rgba(239,68,68,0.8),inset_0_0_16px_-6px_rgba(239,68,68,0.5)]",
-    icon: "text-red-400",
-    title: "text-snow",
-    dot: "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.95)]",
+    border: "border-rose-400/90",
+    glow: "",
+    tile: "bg-gradient-to-br from-rose-500/45 to-red-600/10 ring-1 ring-rose-300/50",
+    icon: "text-rose-100",
+    dot: "bg-rose-500",
+    ping: true,
   },
   safe: {
-    border: "border-emerald-400",
-    glow: "shadow-[0_0_22px_-4px_rgba(52,211,153,0.65),inset_0_0_16px_-6px_rgba(52,211,153,0.4)]",
-    icon: "text-emerald-300",
-    title: "text-snow",
-    dot: "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.9)]",
+    border: "border-emerald-300/60",
+    glow: "shadow-[0_0_28px_-10px_rgba(52,211,153,0.7)]",
+    tile: "bg-gradient-to-br from-emerald-400/35 to-teal-500/5 ring-1 ring-emerald-300/40",
+    icon: "text-emerald-200",
+    dot: "bg-emerald-400",
+    ping: false,
   },
-  muted: { border: "border-dashed border-slate-400/40", glow: "", icon: "text-slate-400", title: "text-mist", dot: "" },
+  muted: {
+    border: "border-dashed border-slate-400/30",
+    glow: "",
+    tile: "bg-slate-500/10 ring-1 ring-slate-400/20",
+    icon: "text-slate-400",
+    dot: "",
+    ping: false,
+  },
 };
 
 const EDGE_COLOR: Record<Tone, string> = {
   neutral: "#38bdf8",
-  change: "#f59e0b",
+  change: "#fbbf24",
   flow: "#fb923c",
-  impact: "#ef4444",
-  safe: "#22c55e",
+  impact: "#f43f5e",
+  safe: "#34d399",
   muted: "#334155",
 };
 
 type CardData = { icon: LucideIcon; title: string; sub?: string; tone: Tone; clickable?: boolean };
 type HeaderData = { text: string };
+type FlowData = { tone: Tone; still?: boolean };
 
 function Card({ data }: NodeProps<Node<CardData>>) {
   const t = TONE[data.tone];
@@ -81,20 +95,30 @@ function Card({ data }: NodeProps<Node<CardData>>) {
   return (
     <div
       className={cn(
-        "relative flex h-full w-full items-center gap-3 rounded-xl border-[1.5px] bg-[#081530]/85 px-3.5 py-2 backdrop-blur-[2px] transition-[border-color,box-shadow] duration-500",
+        "relative flex h-full w-full items-center gap-3 rounded-2xl border bg-[linear-gradient(180deg,rgba(18,30,60,0.92),rgba(7,13,30,0.94))] px-3 py-2 transition-[border-color,box-shadow,transform] duration-500",
         t.border,
         t.glow,
-        data.clickable && "cursor-pointer hover:brightness-125",
+        data.tone === "impact" && "alarm",
+        data.tone === "change" && "pop-in",
+        data.clickable && "cursor-pointer hover:-translate-y-0.5 hover:brightness-125",
       )}
     >
-      {t.dot && <span aria-hidden className={cn("absolute right-2.5 top-2.5 h-2 w-2 rounded-full transition-colors duration-500", t.dot)} />}
+      {data.tone === "flow" && <span aria-hidden className="scan-beam" />}
       <Handle id="l" type="target" position={Position.Left} className="!h-1 !w-1 !border-0 !bg-transparent" />
       <Handle id="t" type="target" position={Position.Top} className="!h-1 !w-1 !border-0 !bg-transparent" />
-      <Icon className={cn("h-6 w-6 shrink-0 transition-colors duration-500", t.icon)} />
+      <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-xl transition-colors duration-500", t.tile)}>
+        <Icon className={cn("h-5 w-5 transition-colors duration-500", t.icon)} strokeWidth={1.9} />
+      </span>
       <div className="min-w-0 pr-3">
-        <div className={cn("truncate text-[16px] font-semibold leading-tight", t.title)}>{data.title}</div>
-        {data.sub && <div className="mt-1 line-clamp-2 text-[13px] leading-snug text-mist">{data.sub}</div>}
+        <div className="truncate text-[14.5px] font-semibold leading-tight text-snow">{data.title}</div>
+        {data.sub && <div className="mt-1 line-clamp-2 text-[12px] leading-snug text-mist">{data.sub}</div>}
       </div>
+      {t.dot && (
+        <span aria-hidden className="absolute right-2.5 top-2.5 flex h-2 w-2">
+          {t.ping && <span className={cn("ping-soft absolute inset-0 rounded-full", t.dot)} />}
+          <span className={cn("relative h-2 w-2 rounded-full shadow-[0_0_8px_currentColor]", t.dot)} />
+        </span>
+      )}
       <Handle id="r" type="source" position={Position.Right} className="!h-1 !w-1 !border-0 !bg-transparent" />
       <Handle id="b" type="source" position={Position.Bottom} className="!h-1 !w-1 !border-0 !bg-transparent" />
     </div>
@@ -103,15 +127,49 @@ function Card({ data }: NodeProps<Node<CardData>>) {
 
 function Header({ data }: NodeProps<Node<HeaderData>>) {
   return (
-    <div className="w-full text-center text-[13.5px] font-semibold uppercase tracking-[0.18em] text-sky-300 [text-shadow:0_0_12px_rgba(56,189,248,0.6)]">
-      {data.text}
+    <div className="flex w-full flex-col items-center gap-1.5">
+      <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-sky-200/80 text-glow-cyan">{data.text}</div>
+      <div className="h-px w-16 bg-gradient-to-r from-transparent via-sky-300/60 to-transparent" />
     </div>
   );
 }
 
+/** A living connection: a soft glow, a crisp stroke and data packets travelling along it. */
+function FlowEdge({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data, markerEnd }: EdgeProps<Edge<FlowData>>) {
+  const [path] = getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, curvature: 0.32 });
+  const tone = data?.tone ?? "neutral";
+  const color = EDGE_COLOR[tone];
+  const hot = tone !== "neutral" && tone !== "muted";
+  const dur = tone === "impact" ? 1.1 : hot ? 1.5 : 3.4;
+  const packets = hot ? 3 : 2;
+  return (
+    <g>
+      <path d={path} fill="none" stroke={color} strokeOpacity={hot ? 0.3 : 0.12} strokeWidth={hot ? 9 : 6} style={{ filter: "blur(4px)" }} />
+      <path
+        id={id}
+        d={path}
+        fill="none"
+        stroke={color}
+        strokeOpacity={hot ? 0.95 : 0.45}
+        strokeWidth={hot ? 2.2 : 1.5}
+        markerEnd={markerEnd}
+        className={tone === "impact" || tone === "change" ? "dash-flow" : undefined}
+        style={{ transition: "stroke 0.5s, stroke-opacity 0.5s" }}
+      />
+      {!data?.still &&
+        Array.from({ length: packets }, (_, i) => (
+          <circle key={`${tone}-${i}`} r={hot ? 3.4 : 2.4} fill={hot ? "#fff7ed" : "#e0f2fe"} style={{ filter: `drop-shadow(0 0 5px ${color}) drop-shadow(0 0 2px ${color})` }}>
+            <animateMotion dur={`${dur}s`} repeatCount="indefinite" begin={`${(-i * dur) / packets}s`} path={path} />
+          </circle>
+        ))}
+    </g>
+  );
+}
+
 const nodeTypes = { card: Card, header: Header };
-const CARD_W = 214;
-const CARD_H = 74;
+const edgeTypes = { flow: FlowEdge };
+const CARD_W = 222;
+const CARD_H = 72;
 
 /** Re-fit the view whenever the diagram's content or the panel size changes, without remounting. */
 function AutoFit({ signature }: { signature: string }) {
@@ -121,7 +179,7 @@ function AutoFit({ signature }: { signature: string }) {
   const height = useStore((st) => st.height);
   useEffect(() => {
     if (!ready) return;
-    const id = requestAnimationFrame(() => void fitView({ padding: 0.05, duration: 400 }));
+    const id = requestAnimationFrame(() => void fitView({ padding: 0.08, duration: 500 }));
     return () => cancelAnimationFrame(id);
   }, [signature, ready, fitView, width, height]);
   return null;
@@ -158,6 +216,7 @@ export function ImpactFlow({
   statuses,
   updated,
   showVerdicts,
+  reducedMotion,
   onSelectCustomer,
 }: {
   impact: ImpactAnalysis | undefined;
@@ -165,9 +224,13 @@ export function ImpactFlow({
   statuses: Map<string, NodeStatus>;
   updated: boolean;
   showVerdicts: boolean;
+  reducedMotion: boolean;
   onSelectCustomer: (id: string) => void;
 }) {
-  const { nodes, edges, key } = useMemo(() => build(impact, graph, statuses, updated, showVerdicts), [impact, graph, statuses, updated, showVerdicts]);
+  const { nodes, edges, key } = useMemo(
+    () => build(impact, graph, statuses, updated, showVerdicts, reducedMotion),
+    [impact, graph, statuses, updated, showVerdicts, reducedMotion],
+  );
   if (!impact || !graph) {
     return <div className="flex h-full items-center justify-center text-sm text-fog">Loading the company map…</div>;
   }
@@ -176,10 +239,11 @@ export function ImpactFlow({
       nodes={nodes}
       edges={edges}
       nodeTypes={nodeTypes}
+      edgeTypes={edgeTypes}
       fitView
-      fitViewOptions={{ padding: 0.05 }}
+      fitViewOptions={{ padding: 0.08 }}
       minZoom={0.3}
-      maxZoom={1.4}
+      maxZoom={1.35}
       proOptions={{ hideAttribution: true }}
       nodesDraggable={false}
       nodesConnectable={false}
@@ -192,7 +256,6 @@ export function ImpactFlow({
         if (n.id.startsWith("customer:")) onSelectCustomer(n.id);
       }}
     >
-      <Background color="rgba(148, 197, 255, 0.12)" gap={28} size={1} />
       <AutoFit signature={key} />
     </ReactFlow>
   );
@@ -204,13 +267,14 @@ function build(
   statuses: Map<string, NodeStatus>,
   updated: boolean,
   showVerdicts: boolean,
+  still: boolean,
 ) {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   if (!impact || !graph) return { nodes, edges, key: "empty" };
   const byId = new Map(graph.nodes.map((n) => [n.id, n]));
-  const X = { vendor: 0, system: 252, product: 504, customer: 756 };
-  const ROW = 104;
+  const X = { vendor: 0, system: 272, product: 544, customer: 816 };
+  const ROW = 116;
 
   // Group customers that share a product so their branches never cross or overlap.
   const groups = new Map<string, typeof impact.verdicts>();
@@ -256,7 +320,7 @@ function build(
   const regionsVisible = updated && newRegions.length > 0 && vendorTone === "change";
 
   const header = (id: string, x: number, text: string) =>
-    nodes.push({ id, type: "header", position: { x, y: -52 }, width: CARD_W, height: 20, data: { text }, selectable: false });
+    nodes.push({ id, type: "header", position: { x, y: -56 }, width: CARD_W, height: 24, data: { text }, selectable: false });
   header("h-vendor", X.vendor, "Supplier");
   header("h-system", X.system, "Our system");
   header("h-product", X.product, "Our product");
@@ -287,7 +351,7 @@ function build(
         position: { x: X.vendor, y: vendorY + 150 + i * ROW },
         data: { icon: MapPin, title: r.code === "US" ? "United States" : r.name, sub: "Newly allowed for data", tone: "change" },
       });
-      edges.push(edge(`e-${id}`, impact.vendor_id, id, "change", true, true));
+      edges.push(edge(`e-${id}`, impact.vendor_id, id, "change", still, true));
     });
   }
 
@@ -301,7 +365,7 @@ function build(
       position: { x: X.system, y: systemY.get(id) ?? 0 },
       data: { icon: Cog, title: s.name, sub: `Sends data to ${impact.vendor_name}`, tone },
     });
-    edges.push(edge(`e-v-${id}`, impact.vendor_id, id, tone, tone !== "neutral"));
+    edges.push(edge(`e-v-${id}`, impact.vendor_id, id, tone, still));
   }
   for (const [id, p] of productCustomers) {
     const tone = toneOf(statuses.get(id));
@@ -313,7 +377,7 @@ function build(
       position: { x: X.product, y: productY.get(id) ?? 0 },
       data: { icon: FileText, title: p.name, sub: `Runs on ${[...p.systems].map((s) => systemProducts.get(s)?.name).join(", ")}`, tone },
     });
-    for (const s of p.systems) edges.push(edge(`e-${s}-${id}`, s, id, tone, tone !== "neutral"));
+    for (const s of p.systems) edges.push(edge(`e-${s}-${id}`, s, id, tone, still));
   }
   const added = newRegions.map((r) => r.code);
   for (const v of connected) {
@@ -335,7 +399,7 @@ function build(
         clickable: true,
       },
     });
-    for (const r of v.routes) edges.push(edge(`e-${r.product_id}-${v.customer_id}`, r.product_id, v.customer_id, tone, tone !== "neutral"));
+    for (const r of v.routes) edges.push(edge(`e-${r.product_id}-${v.customer_id}`, r.product_id, v.customer_id, tone, still));
   }
   unconnected.forEach((v, i) => {
     const status = statuses.get(v.customer_id);
@@ -359,17 +423,16 @@ function build(
   return { nodes, edges, key };
 }
 
-function edge(id: string, source: string, target: string, tone: Tone, animated: boolean, vertical = false): Edge {
+function edge(id: string, source: string, target: string, tone: Tone, still: boolean, vertical = false): Edge<FlowData> {
   const color = EDGE_COLOR[tone];
   return {
     id,
     source,
     target,
-    type: "smoothstep",
-    animated,
+    type: "flow",
+    data: { tone, still },
     sourceHandle: vertical ? "b" : "r",
     targetHandle: vertical ? "t" : "l",
-    style: { stroke: color, strokeWidth: tone === "neutral" ? 2 : 2.5, filter: `drop-shadow(0 0 4px ${color})`, transition: "stroke 0.5s" },
-    markerEnd: { type: MarkerType.ArrowClosed, color, width: 16, height: 16 },
+    markerEnd: { type: MarkerType.ArrowClosed, color, width: 14, height: 14 },
   };
 }
