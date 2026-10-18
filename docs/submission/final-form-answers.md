@@ -48,7 +48,7 @@ FalkorDB is the only database in ClauseRipple and the agent's reasoning layer. W
 
 ## Blog link
 
-ADD THE DEV POST URL HERE
+https://dev.to/bilalferoz/one-vendor-clause-changed-falkordb-found-everything-it-broke-4b68
 
 ## What did you like about FalkorDB?
 

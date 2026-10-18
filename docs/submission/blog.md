@@ -1,6 +1,7 @@
 ---
 title: "One Vendor Clause Changed. FalkorDB Found Everything It Broke."
-published: false
+published: true
+# Published on DEV: https://dev.to/bilalferoz/one-vendor-clause-changed-falkordb-found-everything-it-broke-4b68
 tags: falkordb, ai, graphdatabase, hackathon
 cover_image: https://raw.githubusercontent.com/bilal-feroz/ClauseRipple/main/docs/submission/blog-images/01-dashboard-after-change.jpg
 ---
